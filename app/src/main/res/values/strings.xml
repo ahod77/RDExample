@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">RubberDucky</string>
+    <string name="menu_restart">Restart</string>
+    <string name="menu_logout">Logout</string>
+</resources>
