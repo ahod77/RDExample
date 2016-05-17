@@ -8,6 +8,8 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
+    private RubberDuckyDB db;
+    private StringBuilder sb;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -16,6 +18,10 @@ public class MainActivity extends AppCompatActivity {
 
         Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(myToolbar);
+
+        //gets database and StringBuilder objects
+        db = new RubberDuckyDB(this);
+        sb = new StringBuilder();
 
         initializeDB();
     }
@@ -42,10 +48,29 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initializeDB(){
-        //Code to initialize database
+        Entity entity = new Entity("Actor", "Asaf", "Building Rubber Ducky!");
+        long insertId = db.insertEntity(entity);
+        if (insertId > 0) {
+            sb.append("Row inserted: Insert Id: " + insertId + "\n");
+        }
+
+        Entity entity2 = new Entity("Actor", "Alon","");
+        insertId = db.insertEntity(entity);
+        if (insertId > 0) {
+            sb.append("Row inserted: Insert Id: " + insertId + "\n");
+        }
+
+        //Test
+        Toast.makeText(this, sb.toString(), Toast.LENGTH_LONG).show();
+
     }
 
     private void clearDB(){
-        //code to clear database
+        sb.setLength(0); //Clears string builder for test
+
+        int deleteCount = db.deleteAllEntities();
+        sb.append("Entity table cleared! Delete count: " + deleteCount + "\n\n");
     }
 }
+
+    //Add display all Entities; Add update; Maybe display sb on UI;

@@ -3,20 +3,34 @@ package com.example.alonassaf.rubberducky;
 /**
  * Created by AlonAssaf on 5/15/2016.
  */
-public class Actor {
-    private int id;
+public class Entity {
+    private int id; //Id holds idx value when entity is retrieved from db. Not used in insert, but can be used in update
     private String type;
     private String name;
     private String desc;
 
-    public Actor(int id, String type, String name){
+    public Entity(String type, String name){
+        this.id = 0;
+        this.type = type;
+        this.name = name;
+        this.desc = "";
+    }
+
+    public Entity(String type, String name, String desc){
+        this.id = 0;
+        this.type = type;
+        this.name = name;
+        this.desc = desc;
+    }
+
+    public Entity(int id, String type, String name){
         this.id = id;
         this.type = type;
         this.name = name;
         this.desc = "";
     }
 
-    public Actor(int id, String type, String name, String desc){
+    public Entity(int id, String type, String name, String desc){
         this.id = id;
         this.type = type;
         this.name = name;
