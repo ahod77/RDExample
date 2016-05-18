@@ -50,13 +50,15 @@ public class MainActivity extends AppCompatActivity {
     private void initializeDB(){
         Entity entity = new Entity("Actor", "Asaf", "Building Rubber Ducky!");
         long insertId = db.insertEntity(entity);
-        if (insertId > 0) {
+
+        if (insertId > 0) { //For test
             sb.append("Row inserted: Insert Id: " + insertId + "\n");
         }
 
         Entity entity2 = new Entity("Actor", "Alon","");
-        insertId = db.insertEntity(entity);
-        if (insertId > 0) {
+        insertId = db.insertEntity(entity2);
+
+        if (insertId > 0) { //For test
             sb.append("Row inserted: Insert Id: " + insertId + "\n");
         }
 
@@ -69,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
         sb.setLength(0); //Clears string builder for test
 
         int deleteCount = db.deleteAllEntities();
-        sb.append("Entity table cleared! Delete count: " + deleteCount + "\n\n");
+        sb.append("Entity table cleared! Delete count: " + deleteCount + "\n\n"); //For test
     }
 }
 

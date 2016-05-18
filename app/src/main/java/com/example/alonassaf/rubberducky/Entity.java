@@ -9,27 +9,7 @@ public class Entity {
     private String name;
     private String desc;
 
-    public Entity(String type, String name){
-        this.id = 0;
-        this.type = type;
-        this.name = name;
-        this.desc = "";
-    }
-
-    public Entity(String type, String name, String desc){
-        this.id = 0;
-        this.type = type;
-        this.name = name;
-        this.desc = desc;
-    }
-
-    public Entity(int id, String type, String name){
-        this.id = id;
-        this.type = type;
-        this.name = name;
-        this.desc = "";
-    }
-
+    //Constructors
     public Entity(int id, String type, String name, String desc){
         this.id = id;
         this.type = type;
@@ -37,6 +17,19 @@ public class Entity {
         this.desc = desc;
     }
 
+    public Entity(String type, String name){
+        this(0, type, name, "");
+    }
+
+    public Entity(String type, String name, String desc){
+        this(0, type, name, desc);
+    }
+
+    public Entity(int id, String type, String name){
+        this(id, type, name, "");
+    }
+
+    //Getters and Setters
     public int getId(){
         return id;
     }
