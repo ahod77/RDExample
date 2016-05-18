@@ -49,10 +49,10 @@ public class RubberDuckyDB {
     // CREATE and DROP TABLE statements
     public static final String CREATE_ENTITY_TABLE =
             "CREATE TABLE " + ENTITY_TABLE + " (" +
-            ENTITY_ID       + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-            ENTITY_TYPE     + " TEXT NOT NULL, " +
-            ENTITY_NAME     + " TEXT NOT NULL, " +
-            ENTITY_DESC     + " TEXT);";
+                    ENTITY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    ENTITY_TYPE + " TEXT NOT NULL, " +
+                    ENTITY_NAME + " TEXT NOT NULL, " +
+                    ENTITY_DESC + " TEXT);";
 
     public static final String DROP_ENTITY_TABLE =
             "DROP TABLE IF EXISTS " + ENTITY_TABLE;
@@ -75,12 +75,12 @@ public class RubberDuckyDB {
             "DROP TABLE IF EXISTS " + ACTIVITY_TABLE;
 
     private static class DBHelper extends SQLiteOpenHelper {
-        public DBHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version){
+        public DBHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
             super(context, name, factory, version);
         }
 
         @Override
-        public void onCreate(SQLiteDatabase db){
+        public void onCreate(SQLiteDatabase db) {
             db.execSQL(CREATE_ENTITY_TABLE);
 
             //db.execSQL(CREATE_ACTIVITY_TABLE);
@@ -90,7 +90,7 @@ public class RubberDuckyDB {
             db.execSQL("INSERT INTO entity VALUES (2, 'Actor', 'Alon',''");*/
         }
 
-        public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion){
+        public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
             Log.d("Rubber Ducky", "Upgrading db from version " + oldVersion + " to " + newVersion);
 
             db.execSQL(RubberDuckyDB.DROP_ENTITY_TABLE);
@@ -104,20 +104,20 @@ public class RubberDuckyDB {
     private DBHelper dbHelper;
 
     //constructor
-    public RubberDuckyDB(Context context){
+    public RubberDuckyDB(Context context) {
         dbHelper = new DBHelper(context, DB_NAME, null, DB_VERSION);
     }
 
     //private methods
-    private void openReadableDB(){
+    private void openReadableDB() {
         db = dbHelper.getReadableDatabase();
     }
 
-    private void openWriteableDB(){
+    private void openWriteableDB() {
         db = dbHelper.getWritableDatabase();
     }
 
-    private void closeDB(){
+    private void closeDB() {
         if (db != null)
             db.close();
     }
@@ -125,9 +125,9 @@ public class RubberDuckyDB {
     //Add method(s) to retrieve multiple rows, perhaps based on entity_type
 
     //Retrieves single row from entity table
-    public Entity getEntity(int id){
+    public Entity getEntity(int id) {
         String where = ENTITY_ID + "= ?";
-        String[] whereArgs = { Integer.toString(id) };
+        String[] whereArgs = {Integer.toString(id)};
 
         this.openReadableDB();
         Cursor cursor = db.query(ENTITY_TABLE, null, where, whereArgs, null, null, null);
@@ -138,6 +138,109 @@ public class RubberDuckyDB {
         this.closeDB();
 
         return entity;
+    }
+
+    //Gets entity from cursor
+    private static Entity getEntityFromCursor(Cursor cursor) {
+        if (cursor == null || cursor.getCount() == 0) {
+            return null;
+        } else {
+            try {
+                Entity entity = new Entity(
+                        cursor.getInt(ENTITY_ID_COL),
+                        cursor.getString(ENTITY_TYPE_COL),
+                        cursor.getString(ENTITY_NAME_COL),
+                        cursor.getString(ENTITY_DESC_COL));
+                return entity;
+            } catch (Exception e) {
+                return null;
+            }
+        }
+    }
+
+    //Inserts Entity
+    public long insertEntity(Entity entity) {
+        ContentValues cv = new ContentValues(); //What about id? Is it only when retrieving?
+        cv.put(ENTITY_TYPE, entity.getType());
+        cv.put(ENTITY_NAME, entity.getName());
+        cv.put(ENTITY_DESC, entity.getDesc());
+
+        this.openWriteableDB();
+        long rowID = db.insert(ENTITY_TABLE, null, cv);
+        this.closeDB();
+
+        return rowID;
+    }
+
+    //Updates Entity by id
+    public long updateEntity(Entity entity) {
+        ContentValues cv = new ContentValues();
+        cv.put(ENTITY_TYPE, entity.getType());
+        cv.put(ENTITY_NAME, entity.getName());
+        cv.put(ENTITY_DESC, entity.getDesc());
+
+        String where = ENTITY_ID + "= ?";
+        String[] whereArgs = {String.valueOf(entity.getId())};
+
+        this.openWriteableDB();
+        int rowCount = db.update(ENTITY_TABLE, cv, where, whereArgs);
+        this.closeDB();
+
+        return rowCount;
+    }
+
+    //Deletes an entity
+    public int deleteEntity(long id) {
+        String where = ENTITY_ID + "= ?";
+        String[] whereArgs = {String.valueOf(id)};
+
+        this.openWriteableDB();
+        int rowCount = db.delete(ENTITY_TABLE, where, whereArgs);
+        this.closeDB();
+
+        return rowCount;
+    }
+
+    //Deletes an activity
+    public int deleteActivity(long id) {
+        String where = ACTIVITY_ID + "= ?";
+        String[] whereArgs = {String.valueOf(id)};
+
+        this.openWriteableDB();
+        int rowCount = db.delete(ACTIVITY_TABLE, where, whereArgs);
+        this.closeDB();
+
+        return rowCount;
+    }
+
+    //Deletes all Entities
+    public int deleteAllEntities() {
+        this.openWriteableDB();
+
+        //Deletes all rows in entity table
+        int rowCount = db.delete(ENTITY_TABLE, null, null);
+
+        //Resets index auto-increment
+        db.execSQL("DELETE FROM sqlite_sequence WHERE name='" + ENTITY_TABLE + "';");
+
+        this.closeDB();
+
+        return rowCount;
+    }
+
+    //Deletes all Activities
+    public int deleteAllActivities() {
+        this.openWriteableDB();
+
+        //Deletes all rows in activity table
+        int rowCount = db.delete(ACTIVITY_TABLE, null, null);
+
+        //Resets index auto-increment
+        db.execSQL("DELETE FROM sqlite_sequence WHERE name='" + ACTIVITY_TABLE + "';");
+
+        this.closeDB();
+
+        return rowCount;
     }
 
     /*Retrieves single row from activity table
@@ -156,27 +259,7 @@ public class RubberDuckyDB {
         return activity;
     }*/
 
-    //Gets entity from cursor
-    private static Entity getEntityFromCursor(Cursor cursor){
-        if (cursor == null || cursor.getCount() == 0){
-            return null;
-        }
-        else {
-            try {
-                Entity entity = new Entity(
-                        cursor.getInt(ENTITY_ID_COL),
-                        cursor.getString(ENTITY_TYPE_COL),
-                        cursor.getString(ENTITY_NAME_COL),
-                        cursor.getString(ENTITY_DESC_COL));
-                return entity;
-            }
-            catch(Exception e){
-                return null;
-            }
-        }
-    }
-
-    /*Gets activity from cursor
+        /*Gets activity from cursor
     private static Activity getActivityFromCursor(Cursor cursor){
         if (cursor == null || cursor.getCount() == 0){
             return null;
@@ -197,21 +280,7 @@ public class RubberDuckyDB {
         }
     }*/
 
-    //Inserts Entity
-    public long insertEntity(Entity entity){
-        ContentValues cv = new ContentValues(); //What about id? Is it only when retrieving?
-        cv.put(ENTITY_TYPE, entity.getType());
-        cv.put(ENTITY_NAME, entity.getName());
-        cv.put(ENTITY_DESC, entity.getDesc());
-
-        this.openWriteableDB();
-        long rowID = db.insert(ENTITY_TABLE, null, cv);
-        this.closeDB();
-
-        return rowID;
-    }
-
-    /*Inserts Activity
+       /*Inserts Activity
     public long insertActivity(Activity activity{
         ContentValues cv = new ContentValues(); //What about id? Is it only when retrieving?
         cv.put(ACTIVITY_TIMESTAMP, activity.getTimestamp());    //Issue: Type mismatch
@@ -226,24 +295,7 @@ public class RubberDuckyDB {
         return rowID;
     }*/
 
-    //Updates Entity by id
-    public long updateEntity(Entity entity) {
-        ContentValues cv = new ContentValues();
-        cv.put(ENTITY_TYPE, entity.getType());
-        cv.put(ENTITY_NAME, entity.getName());
-        cv.put(ENTITY_DESC, entity.getDesc());
-
-        String where = ENTITY_ID + "= ?";
-        String[] whereArgs = {String.valueOf(entity.getId())};
-
-        this.openWriteableDB();
-        int rowCount = db.update(ENTITY_TABLE, cv, where, whereArgs);
-        this.closeDB();
-
-        return rowCount;
-    }
-
-    /*Updates Activity by id
+       /*Updates Activity by id
     public long updateActivity(Activity activity) {
         ContentValues cv = new ContentValues();
         cv.put(ACTIVITY_TIMESTAMP, activity.getTimestamp());    //Issue: Type mismatch
@@ -261,57 +313,4 @@ public class RubberDuckyDB {
         return rowCount;
     }*/
 
-    //Deletes an entity
-    public int deleteEntity(long id){
-        String where = ENTITY_ID + "= ?";
-        String[] whereArgs = { String.valueOf(id) };
-
-        this.openWriteableDB();
-        int rowCount = db.delete(ENTITY_TABLE, where, whereArgs);
-        this.closeDB();
-
-        return rowCount;
-    }
-
-    //Deletes an activity
-    public int deleteActivity(long id){
-        String where = ACTIVITY_ID + "= ?";
-        String[] whereArgs = { String.valueOf(id) };
-
-        this.openWriteableDB();
-        int rowCount = db.delete(ACTIVITY_TABLE, where, whereArgs);
-        this.closeDB();
-
-        return rowCount;
-    }
-
-    //Deletes all Entities
-    public int deleteAllEntities(){
-        this.openWriteableDB();
-
-        //Deletes all rows in entity table
-        int rowCount = db.delete(ENTITY_TABLE, null, null);
-
-        //Resets index auto-increment
-        db.execSQL("DELETE FROM sqlite_sequence WHERE name='" + ENTITY_TABLE + "';");
-
-        this.closeDB();
-
-        return rowCount;
-    }
-
-    //Deletes all Activities
-    public int deleteAllActivities(){
-        this.openWriteableDB();
-
-        //Deletes all rows in activity table
-        int rowCount = db.delete(ACTIVITY_TABLE, null, null);
-
-        //Resets index auto-increment
-        db.execSQL("DELETE FROM sqlite_sequence WHERE name='" + ACTIVITY_TABLE + "';");
-
-        this.closeDB();
-
-        return rowCount;
-    }
 }
