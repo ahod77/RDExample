@@ -89,4 +89,8 @@ public class Activity {
     public void setAction(Entity action){
         this.action = action;
     }
+
+    public String toString(){
+        return "<" + timestamp + "> " + id + "| " + creator.getName() + " " + actor.getName() + " " + action.getName();
+    }
 }

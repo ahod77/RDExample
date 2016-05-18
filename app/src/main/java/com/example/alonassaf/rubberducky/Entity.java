@@ -61,4 +61,8 @@ public class Entity {
     public void setDesc(String desc){
         this.desc = desc;
     }
+
+    public String toString(){
+        return "" + id + "| " + type + " " + name + " " + desc;
+    }
 }

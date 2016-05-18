@@ -6,18 +6,53 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
+import android.widget.TabHost;
 
 public class MainActivity extends AppCompatActivity {
     private RubberDuckyDB db;
     private StringBuilder sb;
+
+    private TabHost tabHost;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //Sets up action bar
         Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(myToolbar);
+
+        //Sets up tabs
+        TabHost host = (TabHost)findViewById(R.id.tabHost);
+        host.setup();
+
+        //Tab 1
+        TabHost.TabSpec spec = host.newTabSpec("Actors");
+        spec.setContent(R.id.tab1);
+        spec.setIndicator("Actors");
+        host.addTab(spec);
+
+        //Tab 2
+        spec = host.newTabSpec("Actions");
+        spec.setContent(R.id.tab2);
+        spec.setIndicator("Actions");
+        host.addTab(spec);
+
+        //Tab 3
+        spec = host.newTabSpec("Activity");
+        spec.setContent(R.id.tab3);
+        spec.setIndicator("Activity");
+        host.addTab(spec);
+
+        //Tab 4
+        spec = host.newTabSpec("Rubber Ducky");
+        spec.setContent(R.id.tab4);
+        spec.setIndicator("Rubber Ducky");
+        host.addTab(spec);
+
+        //Set activity tab to show at launch
+        host.setCurrentTab(2);
 
         //gets database and StringBuilder objects
         db = new RubberDuckyDB(this);
