@@ -176,7 +176,7 @@ public class RubberDuckyDB {
         int rowCount = db.delete(ENTITY_TABLE, null, null);
 
         //Resets index auto-increment
-        db.execSQL("DELETE * FROM sqlite_sequence;"); // WHERE name=" + ENTITY_TABLE +";");
+        db.execSQL("DELETE FROM sqlite_sequence WHERE name='" + ENTITY_TABLE + "';");
 
         this.closeDB();
 
