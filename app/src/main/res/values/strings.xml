@@ -2,4 +2,6 @@
     <string name="app_name">RubberDucky</string>
     <string name="menu_restart">Restart</string>
     <string name="menu_logout">Logout</string>
+    <string name="menu_test">Test</string>
+    <string name="menu_test2">Test2</string>
 </resources>

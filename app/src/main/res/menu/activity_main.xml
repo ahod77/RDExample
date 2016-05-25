@@ -7,4 +7,10 @@
     <item android:id="@+id/menu_logout"
         android:title="@string/menu_logout"
         app:showAsAction="never" />
+    <item android:id="@+id/menu_test"
+        android:title="@string/menu_test"
+        app:showAsAction="never" />
+    <item android:id="@+id/menu_test2"
+        android:title="@string/menu_test2"
+        app:showAsAction="never" />
 </menu>

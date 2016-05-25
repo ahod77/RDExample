@@ -6,11 +6,19 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
+import android.widget.Toast;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.sql.Timestamp;
 
 /**
  * Created by AlonAssaf on 5/15/2016.
  */
 public class RubberDuckyDB {
+
     // database constants
     public static final String DB_NAME = "rubberducky.db";
     public static final int DB_VERSION = 1;
@@ -18,33 +26,43 @@ public class RubberDuckyDB {
     // entity table constants
     public static final String ENTITY_TABLE = "entity";
     public static final String ACTIVITY_TABLE = "activity";
+    public static final String SETTINGS_TABLE = "settings";
 
-    public static final String ENTITY_ID = "_id";
+    public static final String ENTITY_ID = "id";
     public static final int ENTITY_ID_COL = 0;
 
-    public static final String ENTITY_TYPE = "entity_type";
+    public static final String ENTITY_TYPE = "type";
     public static final int ENTITY_TYPE_COL = 1;
 
-    public static final String ENTITY_NAME = "entity_name";
+    public static final String ENTITY_NAME = "name";
     public static final int ENTITY_NAME_COL = 2;
 
-    public static final String ENTITY_DESC = "entity_desc";
+    public static final String ENTITY_DESC = "desc";
     public static final int ENTITY_DESC_COL = 3;
 
-    public static final String ACTIVITY_ID = "_id";
+    public static final String ACTIVITY_ID = "id";
     public static final int ACTIVITY_ID_COL = 0;
 
-    public static final String ACTIVITY_TIMESTAMP = "activity_timestamp";
+    public static final String ACTIVITY_TIMESTAMP = "timestamp";
     public static final int ACTIVITY_TIMESTAMP_COL = 1;
 
-    public static final String ACTIVITY_CREATOR = "activity_creator";
+    public static final String ACTIVITY_CREATOR = "creator";
     public static final int ACTIVITY_CREATOR_COL = 2;
 
-    public static final String ACTIVITY_ACTOR = "activity_actor";
+    public static final String ACTIVITY_ACTOR = "container";
     public static final int ACTIVITY_ACTOR_COL = 3;
 
-    public static final String ACTIVITY_ACTION = "activity_action";
+    public static final String ACTIVITY_ACTION = "action";
     public static final int ACTIVITY_ACTION_COL = 4;
+
+    public static final String SETTINGS_ID = "id";
+    public static final int SETTINGS_ID_COL = 0;
+
+    public static final String SETTINGS_KEY = "key";
+    public static final int SETTINGS_KEY_COL = 1;
+
+    public static final String SETTINGS_VALUE = "value";
+    public static final int SETTINGS_VALUE_COL = 2;
 
     // CREATE and DROP TABLE statements
     public static final String CREATE_ENTITY_TABLE =
@@ -52,27 +70,33 @@ public class RubberDuckyDB {
                     ENTITY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     ENTITY_TYPE + " TEXT NOT NULL, " +
                     ENTITY_NAME + " TEXT NOT NULL, " +
-                    ENTITY_DESC + " TEXT);";
+                    ENTITY_DESC + " TEXT);"
+            ;
 
     public static final String DROP_ENTITY_TABLE =
             "DROP TABLE IF EXISTS " + ENTITY_TABLE;
 
-    /*public static final String CREATE_ACTIVITY_TABLE =
+    public static final String CREATE_ACTIVITY_TABLE =
             "CREATE TABLE " + ACTIVITY_TABLE + " (" +
                     ACTIVITY_ID          + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                    ACTIVITY_TIMESTAMP   + " DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL, " +
-                    ACTIVITY_CREATOR     + " INTEGER, " +
-                    ACTIVITY_ACTOR       + " INTEGER, " +       //NOT NULL?
-                    ACTIVITY_ACTION      + " INTEGER, " +       //NOT NULL?
-                    "FOREIGN KEY (" + ACTIVITY_CREATOR + ") REFERENCES " +
-                        ENTITY_TABLE + "(" + ENTITY_ID + "), " +
-                    "FOREIGN KEY (" + ACTIVITY_ACTOR + ") REFERENCES " +
-                        ENTITY_TABLE + "(" + ENTITY_ID + "), " +
-                    "FOREIGN KEY (" + ACTIVITY_ACTION + ") REFERENCES " +
-                        ENTITY_TABLE + "(" + ENTITY_ID + ");";*/
+                    ACTIVITY_TIMESTAMP   + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL, " +
+                    ACTIVITY_CREATOR     + " INTEGER, " +               //References entity table
+                    ACTIVITY_ACTOR       + " INTEGER NOT NULL, " +      //""
+                    ACTIVITY_ACTION      + " INTEGER NOT NULL);"        //""
+            ;
 
     public static final String DROP_ACTIVITY_TABLE =
             "DROP TABLE IF EXISTS " + ACTIVITY_TABLE;
+
+    public static final String CREATE_SETTINGS_TABLE =
+            "CREATE TABLE " + SETTINGS_TABLE + " (" +
+                    SETTINGS_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    SETTINGS_KEY + " TEXT NOT NULL, " +
+                    SETTINGS_VALUE + " TEXT NOT NULL);" //Allow null?
+            ;
+
+    public static final String DROP_SETTINGS_TABLE =
+            "DROP TABLE IF EXISTS " + SETTINGS_TABLE;
 
     private static class DBHelper extends SQLiteOpenHelper {
         public DBHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
@@ -83,18 +107,17 @@ public class RubberDuckyDB {
         public void onCreate(SQLiteDatabase db) {
             db.execSQL(CREATE_ENTITY_TABLE);
 
-            //db.execSQL(CREATE_ACTIVITY_TABLE);
+            db.execSQL(CREATE_ACTIVITY_TABLE);
 
-            /*insert sample entities
-            db.execSQL("INSERT INTO entity VALUES (1, 'Actor', 'Asaf', 'Building Rubber Ducky!'");
-            db.execSQL("INSERT INTO entity VALUES (2, 'Actor', 'Alon',''");*/
+            db.execSQL(CREATE_SETTINGS_TABLE);
         }
 
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
             Log.d("Rubber Ducky", "Upgrading db from version " + oldVersion + " to " + newVersion);
 
             db.execSQL(RubberDuckyDB.DROP_ENTITY_TABLE);
-            //db.execSQL(RubberDuckyDB.DROP_ACTIVITY_TABLE);
+            db.execSQL(RubberDuckyDB.DROP_ACTIVITY_TABLE);
+            db.execSQL(RubberDuckyDB.DROP_SETTINGS_TABLE);
             onCreate(db);
         }
     }
@@ -113,7 +136,7 @@ public class RubberDuckyDB {
         db = dbHelper.getReadableDatabase();
     }
 
-    private void openWriteableDB() {
+    private void openWritableDB() {
         db = dbHelper.getWritableDatabase();
     }
 
@@ -158,15 +181,113 @@ public class RubberDuckyDB {
         }
     }
 
+    //Retrieves single row from activity table
+    public Activity getActivity(int id){
+        String where = ACTIVITY_ID + "= ?";
+        String[] whereArgs = { Integer.toString(id) };
+
+        this.openReadableDB();
+        Cursor cursor = db.query(ACTIVITY_TABLE, null, where, whereArgs, null, null, null);
+        cursor.moveToFirst();
+        Activity activity = getActivityFromCursor(cursor);
+        if (cursor != null)
+            cursor.close();
+        this.closeDB();
+
+        return activity;
+    }
+
+    //Gets activity with key IDs from cursor
+    private static Activity getActivityFromCursor(Cursor cursor){
+        if (cursor == null || cursor.getCount() == 0){
+            return null;
+        }
+        else {
+            try {
+                Activity activity = new Activity(
+                        cursor.getInt(ACTIVITY_ID_COL),
+                        Timestamp.valueOf(cursor.getString(ACTIVITY_TIMESTAMP_COL)),
+                        cursor.getInt(ACTIVITY_CREATOR_COL),
+                        cursor.getInt(ACTIVITY_ACTOR_COL),
+                        cursor.getInt(ACTIVITY_ACTION_COL));
+                return activity;
+            }
+            catch(Exception e){
+                return null;
+            }
+        }
+    }
+
+    //Retrieves single row from settings table as JSON object
+    public JSONObject getSetting(String key) {
+        String where = SETTINGS_KEY + "= ?";
+        String[] whereArgs = { key };
+
+        this.openReadableDB();
+        Cursor cursor = db.query(SETTINGS_TABLE, null, where, whereArgs, null, null, null);
+        cursor.moveToFirst();
+        JSONObject setting = getSettingFromCursor(cursor);
+        if (cursor != null)
+            cursor.close();
+        this.closeDB();
+
+        return setting;
+    }
+
+    //Gets setting from cursor as JSON object
+    private static JSONObject getSettingFromCursor(Cursor cursor) {
+        if (cursor == null || cursor.getCount() == 0) {
+            return null;
+        } else {
+            try {
+                JSONObject setting = new JSONObject(        //Creates JSON object from string in db
+                        cursor.getString(SETTINGS_VALUE_COL));
+                return setting;
+            } catch (Exception e) {
+                return null;
+            }
+        }
+    }
+
     //Inserts Entity
     public long insertEntity(Entity entity) {
-        ContentValues cv = new ContentValues(); //What about id? Is it only when retrieving?
+        ContentValues cv = new ContentValues();
         cv.put(ENTITY_TYPE, entity.getType());
         cv.put(ENTITY_NAME, entity.getName());
         cv.put(ENTITY_DESC, entity.getDesc());
 
-        this.openWriteableDB();
+        this.openWritableDB();
         long rowID = db.insert(ENTITY_TABLE, null, cv);
+        this.closeDB();
+
+        return rowID;
+    }
+
+    //Inserts Activity with key ID instance variables
+    public long insertActivity(Activity activity){
+        ContentValues cv = new ContentValues();
+        if (activity.getTimestamp() != null) {
+            cv.put(ACTIVITY_TIMESTAMP, activity.getTimestamp().toString()); //If null, inserts current timestamp
+        }
+        cv.put(ACTIVITY_CREATOR, activity.getCreator_id());
+        cv.put(ACTIVITY_ACTOR, activity.getContainer_id());
+        cv.put(ACTIVITY_ACTION, activity.getAction_id());
+
+        this.openWritableDB();
+        long rowID = db.insert(ACTIVITY_TABLE, null, cv);
+        this.closeDB();
+
+        return rowID;
+    }
+
+    //Inserts Setting from JSON object
+    public long insertSetting(String key, JSONObject setting) {
+        ContentValues cv = new ContentValues();
+        cv.put(SETTINGS_KEY, key);
+        cv.put(SETTINGS_VALUE, setting.toString()); //Converts JSON Object to string for db insertion
+
+        this.openWritableDB();
+        long rowID = db.insert(SETTINGS_TABLE, null, cv);
         this.closeDB();
 
         return rowID;
@@ -182,8 +303,41 @@ public class RubberDuckyDB {
         String where = ENTITY_ID + "= ?";
         String[] whereArgs = {String.valueOf(entity.getId())};
 
-        this.openWriteableDB();
+        this.openWritableDB();
         int rowCount = db.update(ENTITY_TABLE, cv, where, whereArgs);
+        this.closeDB();
+
+        return rowCount;
+    }
+
+    //Updates Activity by id and using key ID instance variables
+    public long updateActivity(Activity activity) {
+        ContentValues cv = new ContentValues();
+        cv.put(ACTIVITY_TIMESTAMP, activity.getTimestamp().toString());
+        cv.put(ACTIVITY_CREATOR, activity.getCreator_id());
+        cv.put(ACTIVITY_ACTOR, activity.getContainer_id());
+        cv.put(ACTIVITY_ACTION, activity.getAction_id());
+
+        String where = ACTIVITY_ID + "= ?";
+        String[] whereArgs = {String.valueOf(activity.getId())};
+
+        this.openWritableDB();
+        int rowCount = db.update(ACTIVITY_TABLE, cv, where, whereArgs);
+        this.closeDB();
+
+        return rowCount;
+    }
+
+    //Updates Setting by key
+    public long updateSetting(String key, JSONObject setting) {
+        ContentValues cv = new ContentValues();
+        cv.put(SETTINGS_VALUE, setting.toString()); //Converts JSON object to string for db update
+
+        String where = key + "= ?";
+        String[] whereArgs = { key };
+
+        this.openWritableDB();
+        int rowCount = db.update(SETTINGS_TABLE, cv, where, whereArgs);
         this.closeDB();
 
         return rowCount;
@@ -194,7 +348,7 @@ public class RubberDuckyDB {
         String where = ENTITY_ID + "= ?";
         String[] whereArgs = {String.valueOf(id)};
 
-        this.openWriteableDB();
+        this.openWritableDB();
         int rowCount = db.delete(ENTITY_TABLE, where, whereArgs);
         this.closeDB();
 
@@ -206,8 +360,20 @@ public class RubberDuckyDB {
         String where = ACTIVITY_ID + "= ?";
         String[] whereArgs = {String.valueOf(id)};
 
-        this.openWriteableDB();
+        this.openWritableDB();
         int rowCount = db.delete(ACTIVITY_TABLE, where, whereArgs);
+        this.closeDB();
+
+        return rowCount;
+    }
+
+    //Deletes a setting
+    public int deleteSetting(long id) {
+        String where = SETTINGS_ID + "= ?";
+        String[] whereArgs = {String.valueOf(id)};
+
+        this.openWritableDB();
+        int rowCount = db.delete(SETTINGS_TABLE, where, whereArgs);
         this.closeDB();
 
         return rowCount;
@@ -215,7 +381,7 @@ public class RubberDuckyDB {
 
     //Deletes all Entities
     public int deleteAllEntities() {
-        this.openWriteableDB();
+        this.openWritableDB();
 
         //Deletes all rows in entity table
         int rowCount = db.delete(ENTITY_TABLE, null, null);
@@ -230,7 +396,7 @@ public class RubberDuckyDB {
 
     //Deletes all Activities
     public int deleteAllActivities() {
-        this.openWriteableDB();
+        this.openWritableDB();
 
         //Deletes all rows in activity table
         int rowCount = db.delete(ACTIVITY_TABLE, null, null);
@@ -243,74 +409,83 @@ public class RubberDuckyDB {
         return rowCount;
     }
 
-    /*Retrieves single row from activity table
-    public Activity getActivity(int id){
-        String where = ACTIVITY_ID + "= ?";
-        String[] whereArgs = { Integer.toString(id) };
+    //Deletes all Settings
+    public int deleteAllSettings() {
+        this.openWritableDB();
 
-        this.openReadableDB();
-        Cursor cursor = db.query(ACTIVITY_TABLE, null, where, whereArgs, null, null, null);
-        cursor.moveToFirst();
-        Activity activity = getActivityFromCursor(cursor);  //Issue: reference to incomplete method
-        if (cursor != null)
-            cursor.close();
-        this.closeDB();
+        //Deletes all rows in settings table
+        int rowCount = db.delete(SETTINGS_TABLE, null, null);
 
-        return activity;
-    }*/
+        //Resets index auto-increment
+        db.execSQL("DELETE FROM sqlite_sequence WHERE name='" + SETTINGS_TABLE + "';");
 
-        /*Gets activity from cursor
-    private static Activity getActivityFromCursor(Cursor cursor){
-        if (cursor == null || cursor.getCount() == 0){
-            return null;
-        }
-        else {
-            try {
-                Activity activity = new Activity(
-                        cursor.getInt(ACTIVITY_ID_COL),
-                        cursor.getString(ACTIVITY_TIMESTAMP_COL),   //Issue: Type mismatches
-                        cursor.getInt(ACTIVITY_CREATOR_COL),        //
-                        cursor.getInt(ACTIVITY_ACTOR_COL),          //
-                        cursor.getInt(ACTIVITY_ACTION_COL));        //
-                return activity;
-            }
-            catch(Exception e){
-                return null;
-            }
-        }
-    }*/
-
-       /*Inserts Activity
-    public long insertActivity(Activity activity{
-        ContentValues cv = new ContentValues(); //What about id? Is it only when retrieving?
-        cv.put(ACTIVITY_TIMESTAMP, activity.getTimestamp());    //Issue: Type mismatch
-        cv.put(ACTIVITY_CREATOR, activity.getCreator());        //
-        cv.put(ACTIVITY_ACTOR, activity.getActor());            //
-        cv.put(ACTIVITY_ACTION, activity.getAction());          //
-
-        this.openWriteableDB();
-        long rowID = db.insert(ACTIVITY_TABLE, null, cv);
-        this.closeDB();
-
-        return rowID;
-    }*/
-
-       /*Updates Activity by id
-    public long updateActivity(Activity activity) {
-        ContentValues cv = new ContentValues();
-        cv.put(ACTIVITY_TIMESTAMP, activity.getTimestamp());    //Issue: Type mismatch
-        cv.put(ACTIVITY_CREATOR, activity.getCreator());
-        cv.put(ACTIVITY_ACTOR, activity.getActor());
-        cv.put(ACTIVITY_ACTION, activity.getAction());
-
-        String where = ACTIVITY_ID + "= ?";
-        String[] whereArgs = {String.valueOf(activity.getId())};
-
-        this.openWriteableDB();
-        int rowCount = db.update(ACTIVITY_TABLE, cv, where, whereArgs);
         this.closeDB();
 
         return rowCount;
-    }*/
+    }
+
+    private StringBuilder sb = new StringBuilder(); //For test
+
+    public void initializeDB(){
+        Entity entity = new Entity("Actor", "Asaf", "Building Rubber Ducky!");
+        long insertId = insertEntity(entity);
+
+        //For test
+        if (insertId > 0) {
+            sb.append("Entity row inserted: Insert Id: " + insertId + "\n");
+        }
+
+        Entity entity2 = new Entity("Actor", "Alon","");
+        insertId = insertEntity(entity2);
+
+        //For test
+        if (insertId > 0) {
+            sb.append("Entity row inserted: Insert Id: " + insertId + "\n");
+        }
+
+        Activity activity = new Activity(null, 0, 1, 3);
+        insertId = insertActivity(activity);
+
+        //For test
+        if (insertId > 0) {
+            sb.append("Activity row inserted: Insert Id: " + insertId + "\n");
+        }
+
+        Activity activity2 = new Activity(null, 0, 2, 4);
+        insertId = insertActivity(activity2);
+
+        //For test
+        if (insertId > 0) {
+            sb.append("Activity row inserted: Insert Id: " + insertId + "\n");
+        }
+
+        //----------------------------------------------------------------
+        JSONObject setting = new JSONObject();
+        JSONArray arr = new JSONArray();
+        arr.put(-1); arr.put(-2); arr.put(-3); arr.put("RubberDucky");
+        try {
+            setting.put("Panes Pinned", arr);
+        }
+        catch (JSONException e){
+            e.printStackTrace();
+        }
+
+        //------------------------------------------------------------------
+
+        //Test
+        Log.d("Rubber Ducky", sb.toString());
+    }
+
+    public void clearDB(){
+        int deleteEntityCount = deleteAllEntities();
+        int deleteActivityCount = deleteAllActivities();
+        int deleteSettingsCount = deleteAllSettings();
+
+        //Test
+        sb.setLength(0); //Clears string builder
+        sb.append("Entity table cleared! Delete count: " + deleteEntityCount + "\n\n");
+        sb.append("Activity table cleared! Delete count: " + deleteActivityCount + "\n\n");
+        sb.append("Settings table cleared! Delete count: " + deleteSettingsCount + "\n\n");
+    }
 
 }
