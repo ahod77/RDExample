@@ -62,11 +62,10 @@
                         android:orientation="vertical">
 
                         <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
                             android:text="This is tab 1"
                             android:textStyle="bold" />
-
                     </LinearLayout>
 
                     <LinearLayout
@@ -77,8 +76,8 @@
                         android:orientation="vertical">
 
                         <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
                             android:text="This is tab 2"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -91,8 +90,8 @@
                         android:orientation="vertical">
 
                         <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
                             android:text="This is tab 3"
                             android:textStyle="bold" />
                     </LinearLayout>
@@ -105,10 +104,18 @@
                         android:orientation="vertical">
 
                         <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
                             android:text="This is tab 4"
-                            android:textStyle="bold" />
+                            android:textStyle="bold"
+                            android:id="@+id/tab4tv" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="This is tab 4"
+                            android:textStyle="bold"
+                            android:id="@+id/tab4tv2" />
                     </LinearLayout>
 
                 </FrameLayout>

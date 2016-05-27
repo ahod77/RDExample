@@ -28,6 +28,10 @@ public class Activity {
         this(0, timestamp, creator_id, container_id, action_id);
     }
 
+    public Activity(int creator_id, int container_id, int action_id){
+        this(0, null, creator_id, container_id, action_id);
+    }
+
     public Activity(int id, Timestamp timestamp, Entity creator, Entity container, Entity action){
         this.id = id;
         this.timestamp = timestamp;
@@ -140,12 +144,16 @@ public class Activity {
             return "Problem printing activity string";
     }
 
-        /*public void buildEntitiesFromIDs(){       //Move this method?
-            //Access db (need way to access from all classes?)
-            //If creator_id > 0, get Entity from row in entity table where id = creator_id and set this for creator
-            //Get Entity from row in entity table where id = container_id and set it to container
-            //Get Entity from row in entity table where id = action_id and set it to action
-        }*/
+        public void buildEntitiesFromIDs(){       //Move this method?
+            RubberDuckyDB db = RubberDuckyDB.getInstance();
+
+            if (creator_id > 0){
+                creator = db.getEntity(creator_id);
+            }
+
+            container = db.getEntity(container_id);
+            action = db.getEntity(action_id);
+        }
 
     /*public void buildIdsFromEntities{ //May be unnecessary
         if (creator != null)

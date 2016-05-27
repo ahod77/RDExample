@@ -17,7 +17,7 @@ import java.sql.Timestamp;
 /**
  * Created by AlonAssaf on 5/15/2016.
  */
-public class RubberDuckyDB {
+public class RubberDuckyDB {    //Singleton to access db from any class; Is this thread safe?
 
     // database constants
     public static final String DB_NAME = "rubberducky.db";
@@ -126,9 +126,25 @@ public class RubberDuckyDB {
     private SQLiteDatabase db;
     private DBHelper dbHelper;
 
-    //constructor
-    public RubberDuckyDB(Context context) {
+    //Holds static reference to singleton instance
+    private static RubberDuckyDB instance = null;
+
+    //private constructor
+    private RubberDuckyDB() {
+        //Prevents instantiation
+    }
+
+    //Initializes singleton
+    public void init(Context context){
         dbHelper = new DBHelper(context, DB_NAME, null, DB_VERSION);
+    }
+
+    //Gets singleton instance
+    public static RubberDuckyDB getInstance(){
+        if (instance == null){
+            instance = new RubberDuckyDB();
+        }
+        return instance;
     }
 
     //private methods
@@ -252,6 +268,11 @@ public class RubberDuckyDB {
     //Inserts Entity
     public long insertEntity(Entity entity) {
         ContentValues cv = new ContentValues();
+
+        if(entity.getId() != 0){ //If the id is not 0, inserts the id in the id column
+            cv.put(ENTITY_ID, entity.getId());
+        }                        //Otherwise, the id defaults to the autoincrement
+
         cv.put(ENTITY_TYPE, entity.getType());
         cv.put(ENTITY_NAME, entity.getName());
         cv.put(ENTITY_DESC, entity.getDesc());
@@ -266,9 +287,15 @@ public class RubberDuckyDB {
     //Inserts Activity with key ID instance variables
     public long insertActivity(Activity activity){
         ContentValues cv = new ContentValues();
-        if (activity.getTimestamp() != null) {
-            cv.put(ACTIVITY_TIMESTAMP, activity.getTimestamp().toString()); //If null, inserts current timestamp
-        }
+
+        if(activity.getId() != 0){ //If the id is not 0, inserts the id into the id column
+            cv.put(ACTIVITY_ID, activity.getId());
+        }                        //Otherwise, the id defaults to the autoincrement
+
+        if (activity.getTimestamp() != null) { //If timestamp is not null, inserts the time stamp
+            cv.put(ACTIVITY_TIMESTAMP, activity.getTimestamp().toString());
+        }                                      //If timestamp is null, defaults to current timestamp
+
         cv.put(ACTIVITY_CREATOR, activity.getCreator_id());
         cv.put(ACTIVITY_ACTOR, activity.getContainer_id());
         cv.put(ACTIVITY_ACTION, activity.getAction_id());
@@ -379,7 +406,7 @@ public class RubberDuckyDB {
         return rowCount;
     }
 
-    //Deletes all Entities
+    //Deletes all entities
     public int deleteAllEntities() {
         this.openWritableDB();
 
@@ -387,14 +414,14 @@ public class RubberDuckyDB {
         int rowCount = db.delete(ENTITY_TABLE, null, null);
 
         //Resets index auto-increment
-        db.execSQL("DELETE FROM sqlite_sequence WHERE name='" + ENTITY_TABLE + "';");
+        //db.execSQL("DELETE FROM sqlite_sequence WHERE name='" + ENTITY_TABLE + "';");
 
         this.closeDB();
 
         return rowCount;
     }
 
-    //Deletes all Activities
+    //Deletes all activities
     public int deleteAllActivities() {
         this.openWritableDB();
 
@@ -402,14 +429,14 @@ public class RubberDuckyDB {
         int rowCount = db.delete(ACTIVITY_TABLE, null, null);
 
         //Resets index auto-increment
-        db.execSQL("DELETE FROM sqlite_sequence WHERE name='" + ACTIVITY_TABLE + "';");
+        //db.execSQL("DELETE FROM sqlite_sequence WHERE name='" + ACTIVITY_TABLE + "';");
 
         this.closeDB();
 
         return rowCount;
     }
 
-    //Deletes all Settings
+    //Deletes all settings
     public int deleteAllSettings() {
         this.openWritableDB();
 
@@ -417,63 +444,58 @@ public class RubberDuckyDB {
         int rowCount = db.delete(SETTINGS_TABLE, null, null);
 
         //Resets index auto-increment
-        db.execSQL("DELETE FROM sqlite_sequence WHERE name='" + SETTINGS_TABLE + "';");
+        //db.execSQL("DELETE FROM sqlite_sequence WHERE name='" + SETTINGS_TABLE + "';");
 
         this.closeDB();
 
         return rowCount;
     }
 
-    private StringBuilder sb = new StringBuilder(); //For test
+    public void populateDB(){
+        //Populates entity table
+        insertEntity(new Entity(-1, "", "Actors", ""));
+        insertEntity(new Entity(-2, "", "Actions", ""));
+        insertEntity(new Entity(-3, "", "Activities", ""));
+        long asafID = insertEntity(new Entity("Actor", "Asaf", "Building Rubber Ducky!"));
+        long repHoursID = insertEntity(new Entity("Action", "Report Hours", "Reports hours worked"));
+        long billTimeID = insertEntity(new Entity("Action", "Bill Time", "Bills time worked"));
+        long rubberDuckyID = insertEntity(new Entity("Container", "Rubber Ducky", "Current project"));
 
-    public void initializeDB(){
-        Entity entity = new Entity("Actor", "Asaf", "Building Rubber Ducky!");
-        long insertId = insertEntity(entity);
+        //Populates activity table                  //Type casting good enough for now b/c numbers are small enough
+        long repHoursActID = insertActivity(new Activity(null, 0, (int)rubberDuckyID, (int)repHoursID));
+        long billTimeActID = insertActivity(new Activity(null, 0, (int)rubberDuckyID, (int)billTimeID));
 
-        //For test
-        if (insertId > 0) {
-            sb.append("Entity row inserted: Insert Id: " + insertId + "\n");
-        }
-
-        Entity entity2 = new Entity("Actor", "Alon","");
-        insertId = insertEntity(entity2);
-
-        //For test
-        if (insertId > 0) {
-            sb.append("Entity row inserted: Insert Id: " + insertId + "\n");
-        }
-
-        Activity activity = new Activity(null, 0, 1, 3);
-        insertId = insertActivity(activity);
-
-        //For test
-        if (insertId > 0) {
-            sb.append("Activity row inserted: Insert Id: " + insertId + "\n");
-        }
-
-        Activity activity2 = new Activity(null, 0, 2, 4);
-        insertId = insertActivity(activity2);
-
-        //For test
-        if (insertId > 0) {
-            sb.append("Activity row inserted: Insert Id: " + insertId + "\n");
-        }
-
-        //----------------------------------------------------------------
+        //Populates settings table
         JSONObject setting = new JSONObject();
-        JSONArray arr = new JSONArray();
-        arr.put(-1); arr.put(-2); arr.put(-3); arr.put("RubberDucky");
         try {
-            setting.put("Panes Pinned", arr);
+            setting.put("data", asafID);
+        }
+        catch (JSONException e){
+            e.printStackTrace();
+        }
+        insertSetting("userID", setting);
+
+
+        setting = new JSONObject();
+        try {
+            setting.put("data", "Asaf"); //Should this string not be hardcoded?
         }
         catch (JSONException e){
             e.printStackTrace();
         }
 
-        //------------------------------------------------------------------
+        insertSetting("userName", setting);
 
-        //Test
-        Log.d("Rubber Ducky", sb.toString());
+
+        setting = new JSONObject();
+        try {
+            setting.put("data", new JSONArray("[-1, -2, -3, " + rubberDuckyID +"]"));
+        }
+        catch (JSONException e){
+            e.printStackTrace();
+        }
+
+        insertSetting("pinnedPanes", setting);
     }
 
     public void clearDB(){
@@ -482,10 +504,12 @@ public class RubberDuckyDB {
         int deleteSettingsCount = deleteAllSettings();
 
         //Test
-        sb.setLength(0); //Clears string builder
+        StringBuilder sb = new StringBuilder();
         sb.append("Entity table cleared! Delete count: " + deleteEntityCount + "\n\n");
         sb.append("Activity table cleared! Delete count: " + deleteActivityCount + "\n\n");
         sb.append("Settings table cleared! Delete count: " + deleteSettingsCount + "\n\n");
+
+        Log.d("Rubber Ducky", sb.toString());
     }
 
 }

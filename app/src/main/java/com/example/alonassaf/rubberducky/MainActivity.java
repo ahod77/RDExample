@@ -1,22 +1,18 @@
 package com.example.alonassaf.rubberducky;
 
-import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.TabHost;
 
-import org.json.JSONObject;
-
 public class MainActivity extends AppCompatActivity {
     private RubberDuckyDB db;
-
     private TabHost tabHost;
+    private TextView tv;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,12 +23,17 @@ public class MainActivity extends AppCompatActivity {
         Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(myToolbar);
 
+        //Gets reference instance to database singleton
+        db = RubberDuckyDB.getInstance();
+        db.init(this); //Passes context
+
+        db.populateDB();
+
         //Sets up tabs
         tabHost = (TabHost)findViewById(R.id.tabHost);
         tabHost.setup();
 
         //Add these tabs dynamically based on tables
-
         //Tab 1
         TabHost.TabSpec spec = tabHost.newTabSpec("Actors");
         spec.setContent(R.id.tab1);
@@ -60,10 +61,14 @@ public class MainActivity extends AppCompatActivity {
         //Set activity tab to show at launch -- will be changed to most recent
         tabHost.setCurrentTab(2);
 
-        //gets database and StringBuilder objects
-        db = new RubberDuckyDB(this);
+        //Sets content for tab 4 text views to activity names
+        /*Way too messy. Need to simply this and not hardcode activity ids
+        tv = (TextView)findViewById(R.id.tab4tv);
+        tv.setText(db.getEntity(db.getActivity(1).getAction_id()).getName());
+        tv = (TextView)findViewById(R.id.tab4tv2);
+        tv.setText(db.getEntity(db.getActivity(2).getAction_id()).getName());*/
 
-        db.initializeDB();
+
     }
 
     @Override
@@ -77,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
         switch (item.getItemId()){
             case R.id.menu_restart:
                 db.clearDB();
-                db.initializeDB();
+                db.populateDB();
                 return true;
             case R.id.menu_logout:
                 Toast.makeText(this, "Logout", Toast.LENGTH_SHORT).show();
