@@ -197,6 +197,31 @@ public class RubberDuckyDB {    //Singleton to access db from any class; Is this
         }
     }
 
+    //Retrieves name field of an entity by id (currently throws error)
+    public String getEntityName(int id) {
+        String name = "";
+        String where = ENTITY_ID + "= ?";
+        String[] whereArgs = {Integer.toString(id)};
+
+        this.openReadableDB();
+        Cursor cursor = db.query(ENTITY_TABLE, null, where, whereArgs, null, null, null);
+        cursor.moveToFirst();
+
+        if (cursor == null || cursor.getCount() == 0) {
+            return "";
+        } else{
+            try {
+                name = cursor.getString(ENTITY_NAME_COL);
+            } catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+        cursor.close();
+        this.closeDB();
+
+        return name;
+    }
+
     //Retrieves single row from activity table
     public Activity getActivity(int id){
         String where = ACTIVITY_ID + "= ?";
@@ -469,8 +494,7 @@ public class RubberDuckyDB {    //Singleton to access db from any class; Is this
         JSONObject setting = new JSONObject();
         try {
             setting.put("data", asafID);
-        }
-        catch (JSONException e){
+        } catch (JSONException e){
             e.printStackTrace();
         }
         insertSetting("userID", setting);
@@ -479,8 +503,7 @@ public class RubberDuckyDB {    //Singleton to access db from any class; Is this
         setting = new JSONObject();
         try {
             setting.put("data", "Asaf"); //Should this string not be hardcoded?
-        }
-        catch (JSONException e){
+        } catch (JSONException e){
             e.printStackTrace();
         }
 
@@ -488,10 +511,11 @@ public class RubberDuckyDB {    //Singleton to access db from any class; Is this
 
 
         setting = new JSONObject();
+        JSONArray panesArr = new JSONArray();
+        panesArr.put(-1); panesArr.put(-2); panesArr.put(-3); panesArr.put(rubberDuckyID);
         try {
-            setting.put("data", new JSONArray("[-1, -2, -3, " + rubberDuckyID +"]"));
-        }
-        catch (JSONException e){
+            setting.put("data", panesArr);
+        } catch (JSONException e){
             e.printStackTrace();
         }
 

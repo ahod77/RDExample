@@ -1,13 +1,22 @@
 package com.example.alonassaf.rubberducky;
 
+import android.graphics.Typeface;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.TabHost;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity {
     private RubberDuckyDB db;
@@ -29,46 +38,47 @@ public class MainActivity extends AppCompatActivity {
 
         db.populateDB();
 
-        //Sets up tabs
+        //Sets up tabhost
         tabHost = (TabHost)findViewById(R.id.tabHost);
         tabHost.setup();
 
-        //Add these tabs dynamically based on tables
-        //Tab 1
-        TabHost.TabSpec spec = tabHost.newTabSpec("Actors");
-        spec.setContent(R.id.tab1);
-        spec.setIndicator("Actors");
-        tabHost.addTab(spec);
+        //Query for pinnedPanes JSON object for tab generation
+        JSONObject pinnedPanes = db.getSetting("pinnedPanes");
+        JSONArray panesArr = new JSONArray();
 
-        //Tab 2
-        spec = tabHost.newTabSpec("Actions");
-        spec.setContent(R.id.tab2);
-        spec.setIndicator("Actions");
-        tabHost.addTab(spec);
-
-        //Tab 3
-        spec = tabHost.newTabSpec("Activity");
-        spec.setContent(R.id.tab3);
-        spec.setIndicator("Activity");
-        tabHost.addTab(spec);
-
-        //Tab 4
-        spec = tabHost.newTabSpec("Rubber Ducky");
-        spec.setContent(R.id.tab4);
-        spec.setIndicator("Rubber Ducky");
-        tabHost.addTab(spec);
+        //Tab generation
+        try{
+            panesArr = pinnedPanes.getJSONArray("data");
+            for (int i=0; i < panesArr.length(); i++) {
+                final int j = i;
+                final String tabName = db.getEntityName(panesArr.getInt(i));
+                final TabHost.TabSpec spec = tabHost.newTabSpec(tabName);
+                spec.setContent(new TabHost.TabContentFactory() {
+                    @Override
+                    public View createTabContent(String tag) {
+                        TextView text = new TextView(MainActivity.this);
+                        text.setText("This is tab " + (j+1));
+                        text.setTypeface(null, Typeface.BOLD);
+                        text.setId(j+1);
+                        return (text);
+                    }
+                });
+                spec.setIndicator(tabName);
+                tabHost.addTab(spec);
+            }
+        } catch (JSONException e){
+            e.printStackTrace();
+        }
 
         //Set activity tab to show at launch -- will be changed to most recent
-        tabHost.setCurrentTab(2);
+        tabHost.setCurrentTab(2); //Is there a way to move this tab to center?
 
         //Sets content for tab 4 text views to activity names
-        /*Way too messy. Need to simply this and not hardcode activity ids
+        /*Too messy. Need to simply this and not hardcode activity ids
         tv = (TextView)findViewById(R.id.tab4tv);
-        tv.setText(db.getEntity(db.getActivity(1).getAction_id()).getName());
+        tv.setText(db.getEntityName(db.getActivity(1).getAction_id()));
         tv = (TextView)findViewById(R.id.tab4tv2);
-        tv.setText(db.getEntity(db.getActivity(2).getAction_id()).getName());*/
-
-
+        tv.setText(db.getEntityName(db.getActivity(2).getAction_id()));*/
     }
 
     @Override
