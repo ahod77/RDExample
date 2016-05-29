@@ -20,6 +20,9 @@ import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity {
     private RubberDuckyDB db;
+
+    private RubberDuckyDB2 db2;
+
     private TabHost tabHost;
     private TextView tv;
 
@@ -36,6 +39,9 @@ public class MainActivity extends AppCompatActivity {
         db = RubberDuckyDB.getInstance();
         db.init(this); //Passes context
 
+        db2.connect(this);
+        db2.populate();
+
         db.populateDB();
 
         //Sets up tabhost
@@ -43,31 +49,26 @@ public class MainActivity extends AppCompatActivity {
         tabHost.setup();
 
         //Query for pinnedPanes JSON object for tab generation
-        JSONObject pinnedPanes = db.getSetting("pinnedPanes");
-        JSONArray panesArr = new JSONArray();
+        long[] pinnedPanes = RubberDuckyDB2.Settings.get("pinnedPanes").getLongs();
 
         //Tab generation
-        try{
-            panesArr = pinnedPanes.getJSONArray("data");
-            for (int i=0; i < panesArr.length(); i++) {
-                final int j = i;
-                final String tabName = db.getEntityName(panesArr.getInt(i));
-                final TabHost.TabSpec spec = tabHost.newTabSpec(tabName);
-                spec.setContent(new TabHost.TabContentFactory() {
-                    @Override
-                    public View createTabContent(String tag) {
-                        TextView text = new TextView(MainActivity.this);
-                        text.setText("This is tab " + (j+1));
-                        text.setTypeface(null, Typeface.BOLD);
-                        text.setId(j+1);
-                        return (text);
-                    }
-                });
-                spec.setIndicator(tabName);
-                tabHost.addTab(spec);
-            }
-        } catch (JSONException e){
-            e.printStackTrace();
+        int i = 0;
+        for (long pp : pinnedPanes) {
+            final int j = i++;
+            final String tabName = db.getEntityName((int) pp);
+            final TabHost.TabSpec spec = tabHost.newTabSpec(tabName);
+            spec.setContent(new TabHost.TabContentFactory() {
+                @Override
+                public View createTabContent(String tag) {
+                    TextView text = new TextView(MainActivity.this);
+                    text.setText("This is tab " + (j+1));
+                    text.setTypeface(null, Typeface.BOLD);
+                    text.setId(j+1);
+                    return (text);
+                }
+            });
+            spec.setIndicator(tabName);
+            tabHost.addTab(spec);
         }
 
         //Set activity tab to show at launch -- will be changed to most recent

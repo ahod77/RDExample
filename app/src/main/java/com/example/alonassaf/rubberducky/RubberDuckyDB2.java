@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
@@ -29,6 +30,13 @@ public final class RubberDuckyDB2 {
     public static void connect(Context context) {
         DBHelper dbHelper = new DBHelper(context, DB_NAME, null, DB_VERSION);
         connection = dbHelper.getWritableDatabase();
+    }
+
+    public static void populate() {
+        //Populates settings table
+        Settings.set(new Setting("userId", 1000));
+        Settings.set(new Setting("userName", "Asaf Hod"));
+        Settings.set(new Setting("pinnedPanes", new long[] { -1, -2, -3, 4 }));
     }
 
     private static class DBHelper extends SQLiteOpenHelper {
