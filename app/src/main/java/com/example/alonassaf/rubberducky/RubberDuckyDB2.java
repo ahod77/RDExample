@@ -17,7 +17,7 @@ import org.json.JSONObject;
 public final class RubberDuckyDB2 {
 
     public static final String DB_NAME = "rubberducky.db";
-    public static final int DB_VERSION = 1;
+    public static final int DB_VERSION = 2;
 
     // private member
     private static SQLiteDatabase connection;
@@ -33,10 +33,18 @@ public final class RubberDuckyDB2 {
     }
 
     public static void populate() {
-        //Populates settings table
-        Settings.set(new Setting("userId", 1000));
+        Entities.set(new Entity(-1, 0, "Actors", "All Actors"));
+        Entities.set(new Entity(-2, 0, "Actions", "All Actions"));
+        Entities.set(new Entity(-3, 0, "Activities", "All Activities"));
+        long asafID = Entities.set(new Entity(1, "Asaf", "Asaf Hod"));
+        long repHoursID = Entities.set(new Entity(2, "Report Hours", "Reports hours worked"));
+        long billTimeID = Entities.set(new Entity(2, "Bill Time", "Bills time worked"));
+        long rubberDuckyID = Entities.set(new Entity(3, "Rubber Ducky", "Current project"));
+
+        // Populates settings table
+        Settings.set(new Setting("userId", asafID));
         Settings.set(new Setting("userName", "Asaf Hod"));
-        Settings.set(new Setting("pinnedPanes", new long[] { -1, -2, -3, 4 }));
+        Settings.set(new Setting("pinnedPanes", new long[] { -1, -2, -3, rubberDuckyID }));
     }
 
     private static class DBHelper extends SQLiteOpenHelper {
@@ -64,21 +72,79 @@ public final class RubberDuckyDB2 {
         }
     }
 
-    public class Entities{
-        public class Entity{
+    public static class Entities {
 
+        public static final String ENTITY_TABLE = "entity";
+
+        public static final String ENTITY_ID = "id";
+        public static final int ENTITY_ID_COL = 0;
+
+        public static final String ENTITY_TYPE = "type";
+        public static final int ENTITY_TYPE_COL = 1;
+
+        public static final String ENTITY_NAME = "name";
+        public static final int ENTITY_NAME_COL = 2;
+
+        public static final String ENTITY_DESC = "desc";
+        public static final int ENTITY_DESC_COL = 3;
+
+        public static final String CREATE_ENTITY_TABLE =
+                "CREATE TABLE " + ENTITY_TABLE + " (" +
+                        ENTITY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                        ENTITY_TYPE + " INTEGER NOT NULL, " +
+                        ENTITY_NAME + " TEXT NOT NULL, " +
+                        ENTITY_DESC + " TEXT);"
+                ;
+
+        public static final String DROP_ENTITY_TABLE =
+                "DROP TABLE IF EXISTS " + ENTITY_TABLE;
+
+        public static void initialize(SQLiteDatabase _conn) {
+            _conn.execSQL(CREATE_ENTITY_TABLE);
+        }
+
+        public static void uninitialize(SQLiteDatabase _conn) {
+            _conn.execSQL(RubberDuckyDB.DROP_ENTITY_TABLE);
+        }
+
+        public static Entity get(long id) {
+            Cursor cursor = connection.query(ENTITY_TABLE, null, ENTITY_ID + "= ?", new String[] { Long.toString(id) }, null, null, null);
+            cursor.moveToFirst();
+            if (cursor.getCount() == 0)
+                return null;
+            else {
+                Entity e = new Entity(id,
+                                      cursor.getInt(ENTITY_TYPE_COL),
+                                      cursor.getString(ENTITY_NAME_COL),
+                                      cursor.getString(ENTITY_DESC_COL));
+                cursor.close();
+                e.markUnDirty();
+                return e;
+            }
+        }
+
+        public static long set(Entity e) {
+            ContentValues cv = new ContentValues();
+            cv.put(ENTITY_TYPE, e.getType());
+            cv.put(ENTITY_NAME, e.getName());
+            cv.put(ENTITY_DESC, e.getDesc());
+
+            if (e.isNew())
+                return e.setRowId(connection.insertOrThrow(ENTITY_TABLE, null, cv));
+            else if (e.isDirty())
+                return e.markSaved(connection.update(ENTITY_TABLE, cv, ENTITY_ID + "= ?", new String[] { Long.toString(e.getRowId()) }));
+            else
+                return e.getRowId();
         }
     }
 
     public class Activities{
-        public class Activity{
-
-        }
     }
 
     public static class Settings{
 
         public static final String SETTINGS_TABLE = "settings";
+
         public static final String SETTINGS_ID = "id";
         public static final int SETTINGS_ID_COL = 0;
 
@@ -107,10 +173,7 @@ public final class RubberDuckyDB2 {
         }
 
         public static Setting get(String key) {
-            String where = SETTINGS_KEY + "= ?";
-            String[] whereArgs = { key };
-
-            Cursor cursor = connection.query(SETTINGS_TABLE, null, where, whereArgs, null, null, null);
+            Cursor cursor = connection.query(SETTINGS_TABLE, null, SETTINGS_KEY + "= ?", new String[] { key }, null, null, null);
             cursor.moveToFirst();
             if (cursor.getCount() == 0)
                 return null;

@@ -3,66 +3,63 @@ package com.example.alonassaf.rubberducky;
 /**
  * Created by AlonAssaf on 5/15/2016.
  */
-public class Entity {
-    private int id; //Id holds idx value when entity is retrieved from db. Not used in insert, but can be used in update
-    private String type;
+public class Entity extends DBObject {
+
+    private int type;
     private String name;
     private String desc;
 
-    //Constructors
-    public Entity(int id, String type, String name, String desc){
-        this.id = id;
+    // Constructors
+    public Entity(long _id, int type, String name, String desc) {
+        super(_id);
         this.type = type;
         this.name = name;
         this.desc = desc;
     }
 
-    public Entity(String type, String name){
-        this(0, type, name, "");
-    }
-
-    public Entity(String type, String name, String desc){
+    public Entity(int type, String name, String desc) {
         this(0, type, name, desc);
     }
 
-    public Entity(int id, String type, String name){
-        this(id, type, name, "");
-    }
-
-    //Getters and Setters
-    public int getId(){
-        return id;
-    }
-
-    public void setId(int id){
-     this.id = id;
-    }
-
-    public String getType(){
+    // Getters and Setters
+    public int getType() {
         return type;
     }
 
-    public void setType(String type){
+    public void setType(int type) {
         this.type = type;
+        markDirty();
     }
 
-    public String getName(){
+    public String getName() {
         return name;
     }
 
-    public void setName(String name){
+    public void setName(String name) {
         this.name = name;
+        markDirty();
     }
 
     public String getDesc(){
         return desc;
     }
 
-    public void setDesc(String desc){
+    public void setDesc(String desc) {
         this.desc = desc;
+        markDirty();
     }
 
-    public String toString(){
-        return "" + id + "| " + type + " " + name + " " + desc;
+    public String toString() {
+        return String.format("%1$d| %2$s %3$s %4$s", getRowId(), type, name, desc);
     }
+
+    // Delete me later: just for compatibility with old RDDB class
+    public int getId() { return 0; }
+    public Entity(int _id, String type, String name, String desc) {
+        this(0L, 0, "", "");
+    }
+    public Entity(String type, String name, String desc) {
+        this(0L, 0, "", "");
+    }
+
 }

@@ -26,7 +26,7 @@ public class DBObject {
     }
 
     public boolean isNew() {
-        return id == 0;
+        return id <= 0;
     }
 
     public boolean isDirty() {
