@@ -9,11 +9,12 @@ import java.util.Arrays;
 /**
  * Created by AlonAssaf on 5/28/2016.
  */
-public class Setting {
+public class Setting extends DBObject {
     String key;
     JSONObject data;
 
-    public Setting(String _key) {
+    public Setting(long _id, String _key) {
+        super(_id);
         key = _key;
         data = null;
     }
@@ -48,7 +49,7 @@ public class Setting {
         }
     }
 
-    public long getId() {
+    public long getEntityId() {
         try {
             return data.getLong("data");
         } catch (Exception e) {
