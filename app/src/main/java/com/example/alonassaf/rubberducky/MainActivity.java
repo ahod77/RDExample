@@ -12,9 +12,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
-    private RubberDuckyDB db;
-
-    private RubberDuckyDB2 db2;
+    // private RubberDuckyDB2 db;
 
     private TabHost tabHost;
     private TextView tv;
@@ -29,13 +27,8 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(myToolbar);
 
         //Gets reference instance to database singleton
-        db = RubberDuckyDB.getInstance();
-        db.init(this); //Passes context
-
-        db2.connect(this);
-        db2.populate();
-
-        db.populateDB();
+        RubberDuckyDB2.connect(this);
+        RubberDuckyDB2.populate();
 
         //Sets up tabhost
         tabHost = (TabHost)findViewById(R.id.tabHost);
@@ -48,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
         int i = 0;
         for (long pp : pinnedPanes) {
             final int j = i++;
-            final String tabName = db.getEntityName((int) pp);
+            final String tabName = RubberDuckyDB2.Entities.get(pp).getName();
             final TabHost.TabSpec spec = tabHost.newTabSpec(tabName);
             spec.setContent(new TabHost.TabContentFactory() {
                 @Override
@@ -85,8 +78,8 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item){
         switch (item.getItemId()){
             case R.id.menu_restart:
-                db.clearDB();
-                db.populateDB();
+                RubberDuckyDB2.clear();
+                RubberDuckyDB2.populate();
                 return true;
             case R.id.menu_logout:
                 Toast.makeText(this, "Logout", Toast.LENGTH_SHORT).show();

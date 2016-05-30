@@ -36,7 +36,7 @@ public final class RubberDuckyDB2 {
         connection = dbHelper.getWritableDatabase();
     }
 
-    public void clear() {
+    public static void clear() {
         int deleteEntityCount = Entities.deleteAll();
         int deleteActivityCount = Activities.deleteAll();
         int deleteSettingsCount = Settings.deleteAll();
