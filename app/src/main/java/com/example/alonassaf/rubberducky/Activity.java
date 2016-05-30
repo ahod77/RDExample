@@ -1,29 +1,39 @@
 package com.example.alonassaf.rubberducky;
 
 import java.sql.Timestamp;
+import org.json.JSONObject;
 
 /**
  * Created by AlonAssaf on 5/17/2016.
  */
-public class Activity {
-    int id; //Id holds idx value when entity is retrieved from db. Not used in insert, but can be used in update
-    Timestamp timestamp;
-    int creator_id, container_id, action_id;
-    Entity creator;
-    Entity container;
-    Entity action;
+public class Activity extends DBObject {
+    Timestamp timestamp = null;
+    long creator_id = 0, container_id = 0, action_id = 0;
+    JSONObject action_params = null;
+    Entity creator = null, container = null, action = null;
 
     //Constructors
-    public Activity(int id, Timestamp timestamp, int creator_id, int container_id, int action_id){
-        this.id = id;
+    public Activity(long _id, Timestamp timestamp, long creator_id, long container_id, long action_id, JSONObject params){
+        super(_id);
         this.timestamp = timestamp;
         this.creator_id = creator_id;
         this.container_id = container_id;
         this.action_id = action_id;
-
-        this.creator = this.container = this.action = null;
+        action_params = params;
     }
 
+    public Activity(Entity creator, Entity container, Entity action, JSONObject params) {
+        this.creator = creator;
+        this.container = container;
+        this.action = action;
+        this.action_params = params;
+
+        this.creator_id = creator.getRowId();
+        this.container_id = container.getRowId();
+        this.action_id = action.getRowId();
+    }
+
+    /*
     public Activity(Timestamp timestamp, int creator_id, int container_id, int action_id){
         this(0, timestamp, creator_id, container_id, action_id);
     }
@@ -67,16 +77,9 @@ public class Activity {
     public Activity(int id, Entity creator, Entity container, Entity action){
         this(id, null, creator, container, action);
     }
+    */
 
     //Getters and Setters
-    public int getId(){
-        return id;
-    }
-
-    public void setId(int id){
-        this.id = id;
-    }
-
     public Timestamp getTimestamp(){
         return timestamp;
     }
@@ -86,64 +89,94 @@ public class Activity {
     }
 
     public Entity getCreator(){
+        if (creator == null && creator_id != 0)
+            creator = lazyLoadEntity(creator_id);
+
         return creator;
     }
 
     public void setCreator(Entity creator){
         this.creator = creator;
+        this.creator_id = creator == null ? 0 : creator.getRowId();
     }
 
     public Entity getContainer(){
+        if (container == null && container_id != 0)
+            container = lazyLoadEntity(container_id);
+
         return container;
     }
 
     public void setContainer(Entity container){
         this.container = container;
+        this.container_id = container == null ? 0 : container.getRowId();
     }
 
     public Entity getAction(){
+        if (action == null && action_id != 0)
+            action = lazyLoadEntity(action_id);
+
         return action;
     }
 
     public void setAction(Entity action){
         this.action = action;
+        this.action_id = action == null ? 0 : action.getRowId();
     }
 
-    public int getCreator_id(){
+    public long getCreator_id(){
         return creator_id;
     }
 
-    public void setCreator_id(int creator_id){
+    /*
+    public void setCreator_id(long creator_id){
         this.creator_id = creator_id;
     }
+    */
 
-    public int getContainer_id(){
+    public long getContainer_id(){
         return container_id;
     }
 
-    public void setContainer_id(int container_id){
+    /*
+    public void setContainer_id(long container_id){
         this.container_id = container_id;
     }
+    */
 
-    public int getAction_id(){
+    public long getAction_id(){
         return action_id;
     }
 
-    public void setAction_id(int action_id){
+    /*
+    public void setAction_id(long action_id){
         this.action_id = action_id;
+    }
+    */
+
+    public String getAction_params() {
+        if (action_params == null)
+            return null;
+        else
+            return action_params.toString();
     }
 
     public String toString(){
         if (container == null || action == null)
-            return "<" + timestamp + "> " + id + "| " + creator_id + " " + container_id + " " + action_id;
+            return "<" + timestamp + "> " + getRowId() + "| " + creator_id + " " + container_id + " " + action_id;
         else if (container != null && action != null && creator != null)
-            return "<" + timestamp + "> " + id + "| " + creator.getName() + " " + container.getName() + " " + action.getName();
+            return "<" + timestamp + "> " + getRowId() + "| " + creator.getName() + " " + container.getName() + " " + action.getName();
         else if (container != null && action != null && creator == null)
-            return "<" + timestamp + "> " + id + "| " + "no creator" + " " + container.getName() + " " + action.getName();
+            return "<" + timestamp + "> " + getRowId() + "| " + "no creator" + " " + container.getName() + " " + action.getName();
         else
             return "Problem printing activity string";
     }
 
+    private Entity lazyLoadEntity(long id) {
+        return RubberDuckyDB2.Entities.get(id);
+    }
+
+    /*
         public void buildEntitiesFromIDs(){       //Move this method?
             RubberDuckyDB db = RubberDuckyDB.getInstance();
 
@@ -154,6 +187,7 @@ public class Activity {
             container = db.getEntity(container_id);
             action = db.getEntity(action_id);
         }
+        */
 
     /*public void buildIdsFromEntities{ //May be unnecessary
         if (creator != null)

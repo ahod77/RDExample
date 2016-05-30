@@ -11,7 +11,7 @@ import java.util.Arrays;
  */
 public class Setting extends DBObject {
     String key;
-    JSONObject data;
+    JSONObject data = null;
 
     public Setting(long _id, String _key) {
         super(_id);

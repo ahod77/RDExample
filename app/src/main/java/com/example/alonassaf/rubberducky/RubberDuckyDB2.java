@@ -11,6 +11,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by AlonAssaf on 5/28/2016.
  */
@@ -50,15 +54,24 @@ public final class RubberDuckyDB2 {
         Entities.set(new Entity(-1, 0, "Actors", "All Actors"));
         Entities.set(new Entity(-2, 0, "Actions", "All Actions"));
         Entities.set(new Entity(-3, 0, "Activities", "All Activities"));
-        long asafID = Entities.set(new Entity(1, "Asaf", "Asaf Hod"));
-        long repHoursID = Entities.set(new Entity(2, "Report Hours", "Reports hours worked"));
-        long billTimeID = Entities.set(new Entity(2, "Bill Time", "Bills time worked"));
-        long rubberDuckyID = Entities.set(new Entity(3, "Rubber Ducky", "Current project"));
+
+        Entity Asaf = new Entity(1, "Asaf", "Asaf Hod");
+        Entities.set(Asaf);
+        Entity reportHoursAction =  new Entity(2, "Report Hours", "Reports hours worked");
+        Entities.set(reportHoursAction);
+        Entity billTimeAction =  new Entity(2, "Bill Time", "Bills time worked");
+        Entities.set(billTimeAction);
+        Entity rubberDuckyProject = new Entity(3, "Rubber Ducky", "Current project");
+        Entities.set(rubberDuckyProject);
+
+        // Populate Activities table
+        Activities.set(new Activity(null, rubberDuckyProject, reportHoursAction, null));
+        Activities.set(new Activity(null, rubberDuckyProject, billTimeAction, null));
 
         // Populates settings table
-        Settings.set(new Setting("userId", asafID));
+        Settings.set(new Setting("userId", Asaf.getRowId()));
         Settings.set(new Setting("userName", "Asaf Hod"));
-        Settings.set(new Setting("pinnedPanes", new long[] { -1, -2, -3, rubberDuckyID }));
+        Settings.set(new Setting("pinnedPanes", new long[] { -1, -2, -3, rubberDuckyProject.getRowId() }));
     }
 
     private static class DBHelper extends SQLiteOpenHelper {
@@ -85,6 +98,8 @@ public final class RubberDuckyDB2 {
     }
 
     public static class Entities {
+
+        public enum Type { UNSPECIFIED /* 0 */, COLLECTION /* 1 */, ACTOR /* 2 */, ACTION /* 3 */}
 
         public static final String ENTITY_TABLE = "entity";
 
@@ -120,19 +135,18 @@ public final class RubberDuckyDB2 {
         }
 
         public static Entity get(long id) {
+            Entity e = null;
+
             Cursor cursor = connection.query(ENTITY_TABLE, null, ENTITY_ID + "= ?", new String[] { Long.toString(id) }, null, null, null);
-            cursor.moveToFirst();
-            if (cursor.getCount() == 0)
-                return null;
-            else {
-                Entity e = new Entity(id,
-                                      cursor.getInt(ENTITY_TYPE_COL),
-                                      cursor.getString(ENTITY_NAME_COL),
-                                      cursor.getString(ENTITY_DESC_COL));
+            if (cursor != null) {
+                if (cursor.moveToFirst()) {
+                    e = loadFromCursor(cursor);
+                }
+
                 cursor.close();
-                e.markUnDirty();
-                return e;
             }
+
+            return e;
         }
 
         public static long set(Entity e) {
@@ -149,9 +163,37 @@ public final class RubberDuckyDB2 {
                 return e.getRowId();
         }
 
+        public static List<Entity> getAllByType(long type) {
+            List<Entity> l = new ArrayList<Entity>();
+
+            Cursor cursor = connection.query(ENTITY_TABLE, null, ENTITY_TYPE + "= ?", new String[] { Long.toString(type) }, null, null, null);
+            if (cursor != null) {
+                if (cursor.moveToFirst()) {
+                    do {
+                        l.add(loadFromCursor(cursor));
+                    } while (cursor.moveToNext());
+                }
+
+                cursor.close();
+            }
+
+            return l;
+        }
+
         public static int deleteAll() {
             return connection.delete(ENTITY_TABLE, null, null);
         }
+
+        private static Entity loadFromCursor(Cursor c) {
+            Entity e = new Entity(c.getLong(ENTITY_ID_COL),
+                                  c.getInt(ENTITY_TYPE_COL),
+                                  c.getString(ENTITY_NAME_COL),
+                                  c.getString(ENTITY_DESC_COL));
+            e.markUnDirty();
+
+            return e;
+        }
+
     }
 
     public static class Activities{
@@ -167,19 +209,23 @@ public final class RubberDuckyDB2 {
         public static final String ACTIVITY_CREATOR = "creator";
         public static final int ACTIVITY_CREATOR_COL = 2;
 
-        public static final String ACTIVITY_ACTOR = "container";
-        public static final int ACTIVITY_ACTOR_COL = 3;
+        public static final String ACTIVITY_CONTAINER = "container";
+        public static final int ACTIVITY_CONTAINER_COL = 3;
 
         public static final String ACTIVITY_ACTION = "action";
         public static final int ACTIVITY_ACTION_COL = 4;
+
+        public static final String ACTIVITY_PARAMS = "params";
+        public static final int ACTIVITY_PARAMS_COL = 5;
 
         public static final String CREATE_ACTIVITY_TABLE =
                 "CREATE TABLE " + ACTIVITY_TABLE + " (" +
                         ACTIVITY_ID          + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                         ACTIVITY_TIMESTAMP   + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL, " +
                         ACTIVITY_CREATOR     + " INTEGER, " +               //References entity table
-                        ACTIVITY_ACTOR       + " INTEGER NOT NULL, " +      //""
-                        ACTIVITY_ACTION      + " INTEGER NOT NULL);"        //""
+                        ACTIVITY_CONTAINER   + " INTEGER NOT NULL, " +      //""
+                        ACTIVITY_ACTION      + " INTEGER NOT NULL," +       //""
+                        ACTIVITY_PARAMS      + " TEXT);"                    // JSON coded
                 ;
 
         public static final String DROP_ACTIVITY_TABLE =
@@ -194,37 +240,66 @@ public final class RubberDuckyDB2 {
         }
 
         public static Activity get(long id) {
-            Cursor cursor = connection.query(ENTITY_TABLE, null, ENTITY_ID + "= ?", new String[] { Long.toString(id) }, null, null, null);
-            cursor.moveToFirst();
-            if (cursor.getCount() == 0)
-                return null;
-            else {
-                Activity a = new Entity(id,
-                        cursor.getInt(ENTITY_TYPE_COL),
-                        cursor.getString(ENTITY_NAME_COL),
-                        cursor.getString(ENTITY_DESC_COL));
+            Activity a = null;
+
+            Cursor cursor = connection.query(ACTIVITY_TABLE, null, ACTIVITY_ID + "= ?", new String[] { Long.toString(id) }, null, null, null);
+            if (cursor != null) {
+                if (cursor.moveToFirst()) {
+                    a = loadFromCursor(cursor);
+                }
+
                 cursor.close();
-                a.markUnDirty();
-                return a;
             }
+
+            return a;
         }
 
         public static long set(Activity a) {
             ContentValues cv = new ContentValues();
-            cv.put(ENTITY_TYPE, e.getType());
-            cv.put(ENTITY_NAME, e.getName());
-            cv.put(ENTITY_DESC, e.getDesc());
+            cv.put(ACTIVITY_CONTAINER, a.getContainer_id());
+            cv.put(ACTIVITY_CREATOR, a.getCreator_id());
+            cv.put(ACTIVITY_ACTION, a.getAction_id());
+            cv.put(ACTIVITY_PARAMS, a.getAction_params());
 
             if (a.isNew())
-                return a.setRowId(connection.insertOrThrow(ENTITY_TABLE, null, cv));
+                return a.setRowId(connection.insertOrThrow(ACTIVITY_TABLE, null, cv));
             else if (a.isDirty())
-                return a.markSaved(connection.update(ENTITY_TABLE, cv, ENTITY_ID + "= ?", new String[] { Long.toString(e.getRowId()) }));
+                return a.markSaved(connection.update(ACTIVITY_TABLE, cv, ACTIVITY_ID + "= ?", new String[] { Long.toString(a.getRowId()) }));
             else
                 return a.getRowId();
         }
 
+        public static List<Activity> getAllByContainer(long container) {
+            List<Activity> l = new ArrayList<Activity>();
+
+            Cursor cursor = connection.query(ACTIVITY_TABLE, null, ACTIVITY_CONTAINER + "= ?", new String[] { Long.toString(container) }, null, null, null);
+            if (cursor != null) {
+                if (cursor.moveToFirst()) {
+                    do {
+                        l.add(loadFromCursor(cursor));
+                    } while (cursor.moveToNext());
+                }
+
+                cursor.close();
+            }
+
+            return l;
+        }
+
         public static int deleteAll() {
             return connection.delete(ACTIVITY_TABLE, null, null);
+        }
+
+        private static Activity loadFromCursor(Cursor c) {
+            Activity a = new Activity(c.getLong(ACTIVITY_ID_COL),
+                                      Timestamp.valueOf(c.getString(ACTIVITY_TIMESTAMP_COL)),
+                                      c.getLong(ACTIVITY_CREATOR_COL),
+                                      c.getLong(ACTIVITY_CONTAINER_COL),
+                                      c.getLong(ACTIVITY_ACTION_COL),
+                                      null);
+            a.markUnDirty();
+
+            return a;
         }
     }
 
@@ -245,7 +320,7 @@ public final class RubberDuckyDB2 {
                 "CREATE TABLE " + SETTINGS_TABLE + " (" +
                         SETTINGS_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                         SETTINGS_KEY + " TEXT NOT NULL, " +
-                        SETTINGS_VALUE + " TEXT NOT NULL);" //Allow null?
+                        SETTINGS_VALUE + " TEXT NOT NULL);" // JSON coded
                 ;
 
         public static final String DROP_SETTINGS_TABLE =
@@ -260,16 +335,19 @@ public final class RubberDuckyDB2 {
         }
 
         public static Setting get(String key) {
+            Setting s = null;
+
             Cursor cursor = connection.query(SETTINGS_TABLE, null, SETTINGS_KEY + "= ?", new String[] { key }, null, null, null);
-            cursor.moveToFirst();
-            if (cursor.getCount() == 0)
-                return null;
-            else {
-                Setting s = new Setting(cursor.getLong(SETTINGS_ID_COL), key).setData(cursor.getString(SETTINGS_VALUE_COL));
+            if (cursor != null) {
+                if (cursor.moveToFirst()) {
+                    s = new Setting(cursor.getLong(SETTINGS_ID_COL), key).setData(cursor.getString(SETTINGS_VALUE_COL));
+                    s.markUnDirty();
+                }
+
                 cursor.close();
-                s.markUnDirty();
-                return s;
             }
+
+            return s;
         }
 
         public static long set(Setting s) {
