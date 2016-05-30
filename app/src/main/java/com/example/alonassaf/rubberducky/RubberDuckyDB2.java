@@ -24,7 +24,7 @@ public final class RubberDuckyDB2 {
     public static final int DB_VERSION = 2;
 
     // private member
-    private static SQLiteDatabase connection;
+    private static SQLiteDatabase connection = null;
 
     //private constructor
     private RubberDuckyDB2() {
@@ -51,9 +51,18 @@ public final class RubberDuckyDB2 {
     }
 
     public static void populate() {
+        Entity actors = new Entity(0, "Actors", "All Actors");
+        Entities.set(actors);
+        Entity actions = new Entity(0, "Actions", "All Actions");
+        Entities.set(actions);
+        Entity activities = new Entity(0, "Activities", "All Activities");
+        Entities.set(activities);
+
+        /*
         Entities.set(new Entity(-1, 0, "Actors", "All Actors"));
         Entities.set(new Entity(-2, 0, "Actions", "All Actions"));
         Entities.set(new Entity(-3, 0, "Activities", "All Activities"));
+        */
 
         Entity Asaf = new Entity(1, "Asaf", "Asaf Hod");
         Entities.set(Asaf);
@@ -71,7 +80,7 @@ public final class RubberDuckyDB2 {
         // Populates settings table
         Settings.set(new Setting("userId", Asaf.getRowId()));
         Settings.set(new Setting("userName", "Asaf Hod"));
-        Settings.set(new Setting("pinnedPanes", new long[] { -1, -2, -3, rubberDuckyProject.getRowId() }));
+        Settings.set(new Setting("pinnedPanes", new long[] { actors.getRowId(), actions.getRowId(), activities.getRowId(), rubberDuckyProject.getRowId() }));
     }
 
     private static class DBHelper extends SQLiteOpenHelper {
@@ -84,6 +93,11 @@ public final class RubberDuckyDB2 {
             Settings.initialize(db);
             Entities.initialize(db);
             Activities.initialize(db);
+
+            // ASAF: please change this some time
+            connection = db;
+            populate();
+            connection = null;
         }
 
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {

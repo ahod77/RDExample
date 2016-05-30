@@ -222,7 +222,7 @@ public class RubberDuckyDB {    //Singleton to access db from any class; Is this
         return name;
     }
 
-    //Retrieves single row from activity table
+    /*Retrieves single row from activity table
     public Activity getActivity(int id){
         String where = ACTIVITY_ID + "= ?";
         String[] whereArgs = { Integer.toString(id) };
@@ -236,8 +236,8 @@ public class RubberDuckyDB {    //Singleton to access db from any class; Is this
         this.closeDB();
 
         return activity;
-    }
-
+    }*/
+/*
     //Gets activity with key IDs from cursor
     private static Activity getActivityFromCursor(Cursor cursor){
         if (cursor == null || cursor.getCount() == 0){
@@ -258,7 +258,7 @@ public class RubberDuckyDB {    //Singleton to access db from any class; Is this
             }
         }
     }
-
+*/
     //Retrieves single row from settings table as JSON object
     public JSONObject getSetting(String key) {
         String where = SETTINGS_KEY + "= ?";
@@ -309,7 +309,7 @@ public class RubberDuckyDB {    //Singleton to access db from any class; Is this
         return rowID;
     }
 
-    //Inserts Activity with key ID instance variables
+    /*Inserts Activity with key ID instance variables
     public long insertActivity(Activity activity){
         ContentValues cv = new ContentValues();
 
@@ -330,7 +330,7 @@ public class RubberDuckyDB {    //Singleton to access db from any class; Is this
         this.closeDB();
 
         return rowID;
-    }
+    }*/
 
     //Inserts Setting from JSON object
     public long insertSetting(String key, JSONObject setting) {
@@ -362,7 +362,7 @@ public class RubberDuckyDB {    //Singleton to access db from any class; Is this
         return rowCount;
     }
 
-    //Updates Activity by id and using key ID instance variables
+    /*Updates Activity by id and using key ID instance variables
     public long updateActivity(Activity activity) {
         ContentValues cv = new ContentValues();
         cv.put(ACTIVITY_TIMESTAMP, activity.getTimestamp().toString());
@@ -378,7 +378,7 @@ public class RubberDuckyDB {    //Singleton to access db from any class; Is this
         this.closeDB();
 
         return rowCount;
-    }
+    }*/
 
     //Updates Setting by key
     public long updateSetting(String key, JSONObject setting) {
@@ -476,7 +476,7 @@ public class RubberDuckyDB {    //Singleton to access db from any class; Is this
         return rowCount;
     }
 
-    public void populateDB(){
+    /*public void populateDB(){
         //Populates entity table
         insertEntity(new Entity(-1, "", "Actors", ""));
         insertEntity(new Entity(-2, "", "Actions", ""));
@@ -520,7 +520,7 @@ public class RubberDuckyDB {    //Singleton to access db from any class; Is this
         }
 
         insertSetting("pinnedPanes", setting);
-    }
+    }*/
 
     public void clearDB(){
         int deleteEntityCount = deleteAllEntities();

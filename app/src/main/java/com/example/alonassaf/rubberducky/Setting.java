@@ -10,8 +10,8 @@ import java.util.Arrays;
  * Created by AlonAssaf on 5/28/2016.
  */
 public class Setting extends DBObject {
-    String key;
-    JSONObject data = null;
+    private String key;
+    private JSONObject data = null;
 
     public Setting(long _id, String _key) {
         super(_id);
@@ -43,7 +43,9 @@ public class Setting extends DBObject {
         try {
             key = _key;
             data = new JSONObject();
-            data.put("data", new JSONArray(Arrays.asList(al)));
+            JSONArray arr = new JSONArray();
+            for (long v: al) { arr.put(v); }
+            data.put("data", arr);
         } catch (JSONException e) {
             data = null;
         }
@@ -88,6 +90,7 @@ public class Setting extends DBObject {
         } catch (JSONException e) {
             data = null;
         }
+        markDirty();
 
         return this;
     }

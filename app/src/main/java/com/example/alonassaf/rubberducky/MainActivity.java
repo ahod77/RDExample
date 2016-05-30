@@ -28,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
 
         //Gets reference instance to database singleton
         RubberDuckyDB2.connect(this);
-        RubberDuckyDB2.populate();
+        // RubberDuckyDB2.populate();
 
         //Sets up tabhost
         tabHost = (TabHost)findViewById(R.id.tabHost);

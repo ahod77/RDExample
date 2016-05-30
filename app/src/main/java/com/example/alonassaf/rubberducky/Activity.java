@@ -7,10 +7,10 @@ import org.json.JSONObject;
  * Created by AlonAssaf on 5/17/2016.
  */
 public class Activity extends DBObject {
-    Timestamp timestamp = null;
-    long creator_id = 0, container_id = 0, action_id = 0;
-    JSONObject action_params = null;
-    Entity creator = null, container = null, action = null;
+    private Timestamp timestamp = null;
+    private long creator_id = 0, container_id = 0, action_id = 0;
+    private JSONObject action_params = null;
+    private Entity creator = null, container = null, action = null;
 
     //Constructors
     public Activity(long _id, Timestamp timestamp, long creator_id, long container_id, long action_id, JSONObject params){
@@ -28,9 +28,9 @@ public class Activity extends DBObject {
         this.action = action;
         this.action_params = params;
 
-        this.creator_id = creator.getRowId();
-        this.container_id = container.getRowId();
-        this.action_id = action.getRowId();
+        this.creator_id = creator == null ? 0 : creator.getRowId();
+        this.container_id = container == null ? 0 : container.getRowId();
+        this.action_id = action == null ? 0 : action.getRowId();
     }
 
     /*
