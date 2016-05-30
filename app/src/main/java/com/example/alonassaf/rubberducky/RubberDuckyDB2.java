@@ -115,8 +115,9 @@ public final class RubberDuckyDB2 {
             if (cursor.getCount() == 0)
                 return null;
             else {
-                Setting s = new Setting(key).setData(cursor.getString(SETTINGS_VALUE_COL));
+                Setting s = new Setting(cursor.getLong(SETTINGS_ID_COL), key).setData(cursor.getString(SETTINGS_VALUE_COL));
                 cursor.close();
+                s.markUnDirty();
                 return s;
             }
         }
@@ -126,9 +127,12 @@ public final class RubberDuckyDB2 {
             cv.put(SETTINGS_KEY, s.getKey());
             cv.put(SETTINGS_VALUE, s.getData());
 
-            return connection.insert(SETTINGS_TABLE, null, cv);
+            if (s.isNew())
+                return s.setRowId(connection.insertOrThrow(SETTINGS_TABLE, null, cv));
+            else if (s.isDirty())
+                return s.markSaved(connection.update(SETTINGS_TABLE, cv, SETTINGS_ID + "= ?", new String[] { Long.toString(s.getRowId()) }));
+            else
+                return s.getRowId();
         }
-
-
     }
 }
