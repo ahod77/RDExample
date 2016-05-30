@@ -32,6 +32,20 @@ public final class RubberDuckyDB2 {
         connection = dbHelper.getWritableDatabase();
     }
 
+    public void clear() {
+        int deleteEntityCount = Entities.deleteAll();
+        int deleteActivityCount = Activities.deleteAll();
+        int deleteSettingsCount = Settings.deleteAll();
+
+        //Test
+        StringBuilder sb = new StringBuilder();
+        sb.append("Entity table cleared! Delete count: " + deleteEntityCount + "\n\n");
+        sb.append("Activity table cleared! Delete count: " + deleteActivityCount + "\n\n");
+        sb.append("Settings table cleared! Delete count: " + deleteSettingsCount + "\n\n");
+
+        Log.d("Rubber Ducky", sb.toString());
+    }
+
     public static void populate() {
         Entities.set(new Entity(-1, 0, "Actors", "All Actors"));
         Entities.set(new Entity(-2, 0, "Actions", "All Actions"));
@@ -55,18 +69,16 @@ public final class RubberDuckyDB2 {
         @Override
         public void onCreate(SQLiteDatabase db) {
             Settings.initialize(db);
-
-            //db.execSQL(CREATE_ENTITY_TABLE);
-
-            // db.execSQL(CREATE_ACTIVITY_TABLE);
+            Entities.initialize(db);
+            Activities.initialize(db);
         }
 
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
             Log.d("Rubber Ducky", "Upgrading db from version " + oldVersion + " to " + newVersion);
 
             Settings.uninitialize(db);
-            // db.execSQL(RubberDuckyDB.DROP_ENTITY_TABLE);
-            // db.execSQL(RubberDuckyDB.DROP_ACTIVITY_TABLE);
+            Entities.uninitialize(db);
+            Activities.uninitialize(db);
 
             onCreate(db);
         }
@@ -104,7 +116,7 @@ public final class RubberDuckyDB2 {
         }
 
         public static void uninitialize(SQLiteDatabase _conn) {
-            _conn.execSQL(RubberDuckyDB.DROP_ENTITY_TABLE);
+            _conn.execSQL(DROP_ENTITY_TABLE);
         }
 
         public static Entity get(long id) {
@@ -136,9 +148,84 @@ public final class RubberDuckyDB2 {
             else
                 return e.getRowId();
         }
+
+        public static int deleteAll() {
+            return connection.delete(ENTITY_TABLE, null, null);
+        }
     }
 
-    public class Activities{
+    public static class Activities{
+
+        public static final String ACTIVITY_TABLE = "activity";
+
+        public static final String ACTIVITY_ID = "id";
+        public static final int ACTIVITY_ID_COL = 0;
+
+        public static final String ACTIVITY_TIMESTAMP = "timestamp";
+        public static final int ACTIVITY_TIMESTAMP_COL = 1;
+
+        public static final String ACTIVITY_CREATOR = "creator";
+        public static final int ACTIVITY_CREATOR_COL = 2;
+
+        public static final String ACTIVITY_ACTOR = "container";
+        public static final int ACTIVITY_ACTOR_COL = 3;
+
+        public static final String ACTIVITY_ACTION = "action";
+        public static final int ACTIVITY_ACTION_COL = 4;
+
+        public static final String CREATE_ACTIVITY_TABLE =
+                "CREATE TABLE " + ACTIVITY_TABLE + " (" +
+                        ACTIVITY_ID          + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                        ACTIVITY_TIMESTAMP   + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL, " +
+                        ACTIVITY_CREATOR     + " INTEGER, " +               //References entity table
+                        ACTIVITY_ACTOR       + " INTEGER NOT NULL, " +      //""
+                        ACTIVITY_ACTION      + " INTEGER NOT NULL);"        //""
+                ;
+
+        public static final String DROP_ACTIVITY_TABLE =
+                "DROP TABLE IF EXISTS " + ACTIVITY_TABLE;
+
+        public static void initialize(SQLiteDatabase _conn) {
+            _conn.execSQL(CREATE_ACTIVITY_TABLE);
+        }
+
+        public static void uninitialize(SQLiteDatabase _conn) {
+            _conn.execSQL(DROP_ACTIVITY_TABLE);
+        }
+
+        public static Activity get(long id) {
+            Cursor cursor = connection.query(ENTITY_TABLE, null, ENTITY_ID + "= ?", new String[] { Long.toString(id) }, null, null, null);
+            cursor.moveToFirst();
+            if (cursor.getCount() == 0)
+                return null;
+            else {
+                Activity a = new Entity(id,
+                        cursor.getInt(ENTITY_TYPE_COL),
+                        cursor.getString(ENTITY_NAME_COL),
+                        cursor.getString(ENTITY_DESC_COL));
+                cursor.close();
+                a.markUnDirty();
+                return a;
+            }
+        }
+
+        public static long set(Activity a) {
+            ContentValues cv = new ContentValues();
+            cv.put(ENTITY_TYPE, e.getType());
+            cv.put(ENTITY_NAME, e.getName());
+            cv.put(ENTITY_DESC, e.getDesc());
+
+            if (a.isNew())
+                return a.setRowId(connection.insertOrThrow(ENTITY_TABLE, null, cv));
+            else if (a.isDirty())
+                return a.markSaved(connection.update(ENTITY_TABLE, cv, ENTITY_ID + "= ?", new String[] { Long.toString(e.getRowId()) }));
+            else
+                return a.getRowId();
+        }
+
+        public static int deleteAll() {
+            return connection.delete(ACTIVITY_TABLE, null, null);
+        }
     }
 
     public static class Settings{
@@ -196,6 +283,10 @@ public final class RubberDuckyDB2 {
                 return s.markSaved(connection.update(SETTINGS_TABLE, cv, SETTINGS_ID + "= ?", new String[] { Long.toString(s.getRowId()) }));
             else
                 return s.getRowId();
+        }
+
+        public static int deleteAll() {
+            return connection.delete(SETTINGS_TABLE, null, null);
         }
     }
 }

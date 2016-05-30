@@ -7,7 +7,7 @@ package com.example.alonassaf.rubberducky;
 
 /*
 
-    DBObjects are created DIRTY to save to minimize calls to markDirty() from each constructor.
+    DBObjects are created DIRTY to minimize calls to markDirty() from each constructor.
 
  */
 
