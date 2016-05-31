@@ -40,16 +40,16 @@ public class MainActivity extends AppCompatActivity {
         //Tab generation
         int i = 0;
         for (long pp : pinnedPanes) {
-            final int j = i++;
+            final long j = pp;
             final String tabName = RubberDuckyDB2.Entities.get(pp).getName();
             final TabHost.TabSpec spec = tabHost.newTabSpec(tabName);
             spec.setContent(new TabHost.TabContentFactory() {
                 @Override
                 public View createTabContent(String tag) {
                     TextView text = new TextView(MainActivity.this);
-                    text.setText("This is tab " + (j+1));
+                    text.setText("This is tab " + j);
                     text.setTypeface(null, Typeface.BOLD);
-                    text.setId(j+1);
+                    text.setId((int)j);
                     return (text);
                 }
             });

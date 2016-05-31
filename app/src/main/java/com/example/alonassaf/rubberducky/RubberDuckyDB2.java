@@ -100,6 +100,7 @@ public final class RubberDuckyDB2 {
             connection = null;
         }
 
+        @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
             Log.d("Rubber Ducky", "Upgrading db from version " + oldVersion + " to " + newVersion);
 
