@@ -2,6 +2,7 @@ package com.example.alonassaf.rubberducky;
 
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -11,10 +12,13 @@ import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.tabmanager.TabManager;
+
 public class MainActivity extends AppCompatActivity {
     // private RubberDuckyDB2 db;
 
-    private TabHost tabHost;
+    TabHost tabHost;
+    TabManager tabManager;
     private TextView tv;
 
     @Override
@@ -22,7 +26,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //Sets up action bar
+        //Sets up action bar - Change to default way
         Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(myToolbar);
 
@@ -33,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
         //Sets up tabhost
         tabHost = (TabHost)findViewById(R.id.tabHost);
         tabHost.setup();
+        tabManager = new TabManager(this, tabHost, R.id.realtabcontent);
 
         //Query for pinnedPanes JSON object for tab generation
         long[] pinnedPanes = RubberDuckyDB2.Settings.get("pinnedPanes").getLongs();
@@ -40,32 +45,23 @@ public class MainActivity extends AppCompatActivity {
         //Tab generation
         int i = 0;
         for (long pp : pinnedPanes) {
-            final long j = pp;
-            final String tabName = RubberDuckyDB2.Entities.get(pp).getName();
-            final TabHost.TabSpec spec = tabHost.newTabSpec(tabName);
-            spec.setContent(new TabHost.TabContentFactory() {
-                @Override
-                public View createTabContent(String tag) {
-                    TextView text = new TextView(MainActivity.this);
-                    text.setText("This is tab " + j);
-                    text.setTypeface(null, Typeface.BOLD);
-                    text.setId((int)j);
-                    return (text);
-                }
-            });
+            String tabName = RubberDuckyDB2.Entities.get(pp).getName();
+            TabHost.TabSpec spec = tabHost.newTabSpec(tabName);
             spec.setIndicator(tabName);
-            tabHost.addTab(spec);
+            tabManager.addTab(spec, RDFragment.class, null);
         }
 
         //Set activity tab to show at launch -- will be changed to most recent
-        tabHost.setCurrentTab(2); //Is there a way to move this tab to center?
+        //tabHost.setCurrentTab(2); //Is there a way to move this tab to center?
+        //Set current tab to last tab opened
+        if(savedInstanceState != null)
+            tabHost.setCurrentTabByTag(savedInstanceState.getString("tab"));
+    }
 
-        //Sets content for tab 4 text views to activity names
-        /*Too messy. Need to simply this and not hardcode activity ids
-        tv = (TextView)findViewById(R.id.tab4tv);
-        tv.setText(db.getEntityName(db.getActivity(1).getAction_id()));
-        tv = (TextView)findViewById(R.id.tab4tv2);
-        tv.setText(db.getEntityName(db.getActivity(2).getAction_id()));*/
+    @Override
+    protected void onSaveInstanceState(Bundle outState){
+        super.onSaveInstanceState(outState);
+        outState.putString("tab", tabHost.getCurrentTabTag());
     }
 
     @Override
