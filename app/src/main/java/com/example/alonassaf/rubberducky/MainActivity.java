@@ -26,7 +26,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //Sets up action bar - Change to default way
+        //Sets up action bar
         Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
         setSupportActionBar(myToolbar);
 
@@ -76,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
             case R.id.menu_restart:
                 RubberDuckyDB2.clear();
                 RubberDuckyDB2.populate();
+                //Refresh displayed info (like resuming activity)
                 return true;
             case R.id.menu_logout:
                 Toast.makeText(this, "Logout", Toast.LENGTH_SHORT).show();
