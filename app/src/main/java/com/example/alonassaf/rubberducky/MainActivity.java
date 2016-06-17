@@ -15,11 +15,8 @@ import android.widget.Toast;
 import com.google.tabmanager.TabManager;
 
 public class MainActivity extends AppCompatActivity {
-    // private RubberDuckyDB2 db;
-
-    TabHost tabHost;
-    TabManager tabManager;
-    private TextView tv;
+    private TabHost tabHost;
+    private TabManager tabManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,8 +24,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         //Sets up action bar
-        Toolbar myToolbar = (Toolbar) findViewById(R.id.my_toolbar);
-        setSupportActionBar(myToolbar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
         //Gets reference instance to database singleton
         RubberDuckyDB2.connect(this);
@@ -48,7 +45,12 @@ public class MainActivity extends AppCompatActivity {
             String tabName = RubberDuckyDB2.Entities.get(pp).getName();
             TabHost.TabSpec spec = tabHost.newTabSpec(tabName);
             spec.setIndicator(tabName);
-            tabManager.addTab(spec, RDFragment.class, null);
+
+            Bundle bundle = new Bundle();
+            bundle.putLong("paneID", pp);
+            //Should add paneType here and to bundle to decide which fragment to add and for decisions within fragment class?
+
+            tabManager.addTab(spec, RDFragment.class, bundle);
         }
 
         //Set activity tab to show at launch -- will be changed to most recent

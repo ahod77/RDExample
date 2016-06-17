@@ -1,5 +1,7 @@
 package com.example.alonassaf.rubberducky;
 
+import android.content.Context;
+
 import org.json.JSONObject;
 
 /**
@@ -14,7 +16,7 @@ public class BaseActivity {
         return null;
     }
 
-    public Boolean act(){
+    public Boolean act(Context context){
         return false;
     }
 

@@ -42,9 +42,9 @@ public class RDFragment extends Fragment {
         //rdTextView.setText(text);
 
         Context context = getActivity().getApplicationContext();
-        long containerId = 7; //Hardcoded RubberDucky id for test, change this
+        Bundle bundle = this.getArguments();
+        long containerId = bundle.getLong("paneID");
 
-        //Needs way to only query activities with no creator
         ArrayList<Activity> activities = (ArrayList)RubberDuckyDB2.Activities.getAllByContainer(containerId);
 
         RDAdapter adapter = new RDAdapter(context, activities);

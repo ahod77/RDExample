@@ -1,6 +1,7 @@
 package com.example.alonassaf.rubberducky;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.CheckBox;
@@ -53,21 +54,26 @@ public class ActivitiesLayout extends RelativeLayout implements View.OnClickList
             actTextView.setText(ba.getDescription());
         }
         catch (Exception e) {
+            e.printStackTrace();
         }
 
+        //Checkbox code for setting whether its checked based on db (unnecessary)
+        //May replace with db information for slider
 
-        //Should move this db call?
-
-
-
-        //Checkbox code
     }
 
     @Override
     public void onClick(View v){
         switch (v.getId()) {
             case R.id.checkBox:
-                //Checkbox code
+                try {
+                    Class c = Class.forName(RubberDuckyDB2.Entities.get(activity.getAction_id()).getFQCN());
+                    BaseActivity ba = (BaseActivity) c.newInstance();
+                    ba.act(context);
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
                 break;
             default:
                 //Code for clicking on screen content
