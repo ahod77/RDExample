@@ -154,11 +154,16 @@ public class Activity extends DBObject {
     }
     */
 
-    public String getAction_params() {
+
+    public String getSerializedParams() {
         if (action_params == null)
             return null;
         else
             return action_params.toString();
+    }
+
+    public JSONObject getAction_params() {
+        return action_params;
     }
 
     public String toString(){

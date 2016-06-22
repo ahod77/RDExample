@@ -26,9 +26,9 @@
         android:text="@string/hours_worked_label"
         android:id="@+id/hoursWorkedLabel"
         android:textStyle="bold"
-        android:layout_marginLeft="19dp"
-        android:layout_marginStart="19dp"
-        android:layout_alignBottom="@+id/decrement_hours"
+        android:layout_marginLeft="30dp"
+        android:layout_marginStart="30dp"
+        android:layout_alignTop="@+id/decrement_hours"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
 
@@ -38,9 +38,9 @@
         android:text="@string/decrement_hours"
         android:id="@+id/decrement_hours"
         android:singleLine="true"
-        android:layout_below="@+id/toolbarRH"
-        android:layout_toLeftOf="@+id/increment_hours"
-        android:layout_toStartOf="@+id/increment_hours" />
+        android:layout_below="@+id/increment_hours"
+        android:layout_alignLeft="@+id/increment_hours"
+        android:layout_alignStart="@+id/increment_hours" />
 
     <Button
         android:layout_width="45dp"
@@ -49,18 +49,36 @@
         android:id="@+id/increment_hours"
         android:width="45dp"
         android:height="45dp"
+        android:layout_marginLeft="49dp"
+        android:layout_marginStart="49dp"
+        android:layout_marginTop="16dp"
         android:layout_below="@+id/toolbarRH"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginRight="28dp"
-        android:layout_marginEnd="28dp" />
+        android:layout_toRightOf="@+id/hoursWorkedTextView"
+        android:layout_toEndOf="@+id/hoursWorkedTextView" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/hours_worked"
         android:id="@+id/hoursWorkedTextView"
-        android:layout_alignBottom="@+id/hoursWorkedLabel"
-        android:layout_centerHorizontal="true" />
+        android:layout_alignTop="@+id/hoursWorkedLabel"
+        android:layout_toRightOf="@+id/hoursWorkedLabel"
+        android:layout_toEndOf="@+id/hoursWorkedLabel"
+        android:layout_marginLeft="41dp"
+        android:layout_marginStart="41dp" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/submit"
+        android:id="@+id/submit_btn"
+        android:layout_marginTop="35dp"
+        android:background="@android:color/holo_green_light"
+        android:layout_below="@+id/decrement_hours"
+        android:layout_centerVertical="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
 
 </RelativeLayout>

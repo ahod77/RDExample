@@ -8,19 +8,19 @@ import org.json.JSONObject;
  * Created by assaf on 6/13/2016.
  */
 public class BaseActivity {
-    public void setData(JSONObject j){
+    public void saveNewActivity(long userId, long containerId, long actionId, JSONObject actionParams){
 
     }
 
-    public JSONObject getData(){
+    public JSONObject getData( long id ){
         return null;
     }
 
-    public Boolean act(Context context){
+    public Boolean act(Context context, Activity a){
         return false;
     }
 
-    public String getDescription(){
+    public String getDescription(Activity a){
         return null;
     }
 }

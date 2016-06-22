@@ -5,7 +5,8 @@
     <string name="menu_test">Test</string>
     <string name="menu_test2">Test2</string>
     <string name="hours_worked_label">Hours Worked</string>
-    <string name="hours_worked">2</string>
+    <string name="hours_worked">Meow</string>
     <string name="increment_hours">+</string>
     <string name="decrement_hours">-</string>
+    <string name="submit">OK</string>
 </resources>

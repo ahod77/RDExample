@@ -51,7 +51,7 @@ public class ActivitiesLayout extends RelativeLayout implements View.OnClickList
         try {
             Class c = Class.forName(RubberDuckyDB2.Entities.get(activity.getAction_id()).getFQCN());
             BaseActivity ba = (BaseActivity) c.newInstance();
-            actTextView.setText(ba.getDescription());
+            actTextView.setText(ba.getDescription(activity));
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -69,7 +69,7 @@ public class ActivitiesLayout extends RelativeLayout implements View.OnClickList
                 try {
                     Class c = Class.forName(RubberDuckyDB2.Entities.get(activity.getAction_id()).getFQCN());
                     BaseActivity ba = (BaseActivity) c.newInstance();
-                    ba.act(context);
+                    ba.act(context, activity);
                 }
                 catch (Exception e) {
                     e.printStackTrace();

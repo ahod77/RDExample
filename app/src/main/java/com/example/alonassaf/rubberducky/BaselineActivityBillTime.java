@@ -8,12 +8,12 @@ import android.content.Intent;
  */
 public class BaselineActivityBillTime extends BaseActivity {
     @Override
-    public String getDescription(){
-        return "Bill Time (D)";
+    public String getDescription(Activity a){
+        return "Bill Time";
     }
 
     @Override
-    public Boolean act(Context context){
+    public Boolean act(Context context, Activity a){
         Intent intent = new Intent(context, BillTimeDialog.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); //Necessary to start an activity from outside an activity
         //Any extras

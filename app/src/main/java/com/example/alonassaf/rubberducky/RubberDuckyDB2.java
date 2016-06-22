@@ -286,7 +286,7 @@ public final class RubberDuckyDB2 {
             cv.put(ACTIVITY_CONTAINER, a.getContainer_id());
             cv.put(ACTIVITY_CREATOR, a.getCreator_id());
             cv.put(ACTIVITY_ACTION, a.getAction_id());
-            cv.put(ACTIVITY_PARAMS, a.getAction_params());
+            cv.put(ACTIVITY_PARAMS, a.getSerializedParams());
 
             if (a.isNew())
                 return a.setRowId(connection.insertOrThrow(ACTIVITY_TABLE, null, cv));
@@ -318,12 +318,21 @@ public final class RubberDuckyDB2 {
         }
 
         private static Activity loadFromCursor(Cursor c) {
+
+            String params_str = c.getString(ACTIVITY_PARAMS_COL);
+            JSONObject params = null;
+
+            try {
+                params = params_str == null ? null : new JSONObject(params_str);
+            } catch (JSONException e) {
+                params = null;
+            }
             Activity a = new Activity(c.getLong(ACTIVITY_ID_COL),
                                       Timestamp.valueOf(c.getString(ACTIVITY_TIMESTAMP_COL)),
                                       c.getLong(ACTIVITY_CREATOR_COL),
                                       c.getLong(ACTIVITY_CONTAINER_COL),
                                       c.getLong(ACTIVITY_ACTION_COL),
-                                      null);
+                                      params);
             a.markUnDirty();
 
             return a;
