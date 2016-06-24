@@ -28,7 +28,7 @@
         android:textStyle="bold"
         android:layout_marginLeft="30dp"
         android:layout_marginStart="30dp"
-        android:layout_alignTop="@+id/decrement_hours"
+        android:layout_alignTop="@+id/decrementHoursRH"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
 
@@ -36,17 +36,17 @@
         android:layout_width="45dp"
         android:layout_height="45dp"
         android:text="@string/decrement_hours"
-        android:id="@+id/decrement_hours"
+        android:id="@+id/decrementHoursRH"
         android:singleLine="true"
-        android:layout_below="@+id/increment_hours"
-        android:layout_alignLeft="@+id/increment_hours"
-        android:layout_alignStart="@+id/increment_hours" />
+        android:layout_below="@+id/incrementHoursRH"
+        android:layout_alignLeft="@+id/incrementHoursRH"
+        android:layout_alignStart="@+id/incrementHoursRH" />
 
     <Button
         android:layout_width="45dp"
         android:layout_height="45dp"
         android:text="@string/increment_hours"
-        android:id="@+id/increment_hours"
+        android:id="@+id/incrementHoursRH"
         android:width="45dp"
         android:height="45dp"
         android:layout_marginLeft="49dp"
@@ -71,10 +71,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/submit"
-        android:id="@+id/submit_btn"
+        android:id="@+id/submitBtnRH"
         android:layout_marginTop="35dp"
         android:background="@android:color/holo_green_light"
-        android:layout_below="@+id/decrement_hours"
+        android:layout_below="@+id/decrementHoursRH"
         android:layout_centerVertical="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"

@@ -46,9 +46,9 @@ implements View.OnClickListener {
 
         //Gets widget references
         hoursWorkedTextView = (TextView) findViewById(R.id.hoursWorkedTextView);
-        incrementHoursButton = (Button) findViewById(R.id.increment_hours);
-        decrementHoursButton = (Button) findViewById(R.id.decrement_hours);
-        submitButton = (Button) findViewById(R.id.submit_btn);
+        incrementHoursButton = (Button) findViewById(R.id.incrementHoursRH);
+        decrementHoursButton = (Button) findViewById(R.id.decrementHoursRH);
+        submitButton = (Button) findViewById(R.id.submitBtnRH);
 
         //Set listeners
         incrementHoursButton.setOnClickListener(this);
@@ -104,17 +104,17 @@ implements View.OnClickListener {
     @Override
     public void onClick(View v){
         switch(v.getId()){
-            case R.id.increment_hours:
+            case R.id.incrementHoursRH:
                 hoursWorked += 0.5f;
                 display();
                 break;
-            case R.id.decrement_hours:
-                if (hoursWorked != 0) {
+            case R.id.decrementHoursRH:
+                if (hoursWorked > 0) {
                     hoursWorked -= 0.5f;
                 }
                 display();
                 break;
-            case R.id.submit_btn:
+            case R.id.submitBtnRH:
                 BaselineActivityReportHours helper = new BaselineActivityReportHours();
                 try {
                     JSONObject j = new JSONObject();

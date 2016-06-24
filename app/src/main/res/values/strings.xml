@@ -9,4 +9,6 @@
     <string name="increment_hours">+</string>
     <string name="decrement_hours">-</string>
     <string name="submit">OK</string>
+    <string name="bill_time_label">Select number of hours to bill</string>
+    <string name="bill_time">Woof</string>
 </resources>
