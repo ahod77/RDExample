@@ -9,6 +9,11 @@ import org.json.JSONObject;
  * Created by assaf on 6/13/2016.
  */
 public class BaselineActivityReportHours extends BaseActivity {
+
+    public static final String HOURS_TOTAL = "hoursTotal";
+    public static final String HOURS_NEW = "hoursNew";
+    public static final String HOURS_WORKED = "hoursWorked";
+
     @Override
     public String getDescription(Activity a){
         if(a.getCreator() == null){

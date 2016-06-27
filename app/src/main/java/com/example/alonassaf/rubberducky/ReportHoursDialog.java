@@ -10,6 +10,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -34,6 +35,10 @@ implements View.OnClickListener {
     private long userId = 0;
     private long actionId = 0;
 
+    private Entity project = null;
+    private double hoursNew = 0.0;
+    private double hoursTotal = 0.0;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,17 +60,29 @@ implements View.OnClickListener {
         decrementHoursButton.setOnClickListener(this);
         submitButton.setOnClickListener(this);
 
+        //Get values from intent
         Intent intent = getIntent();
         rowId = intent.getLongExtra("rowId", 0);
         containerId = intent.getLongExtra("containerId", 0);
         userId = intent.getLongExtra("userId", 0);
         actionId = intent.getLongExtra("actionId", 0);
 
+        //Get badge values
+        project = RubberDuckyDB2.Entities.get(containerId);
+        JSONObject badges = project.getBadges();
+
+        if (badges == null) {
+            badges = new JSONObject();
+        }
+        hoursNew = badges.optDouble(BaselineActivityReportHours.HOURS_NEW, 0.0);
+        hoursTotal = badges.optDouble(BaselineActivityReportHours.HOURS_TOTAL, 0.0);
+
+        //Gets previous hoursWorked value for repeated action
         Activity a = RubberDuckyDB2.Activities.get(rowId);
         if (a.getCreator() != null) {
             JSONObject j = a.getAction_params();
             try {
-                hoursWorked = j.getDouble("hoursWorked");
+                hoursWorked = j.getDouble(BaselineActivityReportHours.HOURS_WORKED);
             } catch (Exception e) {
                 hoursWorked = -1;
             }
@@ -115,14 +132,22 @@ implements View.OnClickListener {
                 display();
                 break;
             case R.id.submitBtnRH:
-                BaselineActivityReportHours helper = new BaselineActivityReportHours();
-                try {
-                    JSONObject j = new JSONObject();
-                    j.put("hoursWorked", hoursWorked);
-                    helper.saveNewActivity(userId, containerId, actionId, j);
-                    finish();
-                } catch(JSONException e){
-                    e.printStackTrace();
+                if (hoursWorked <= 0){
+                    Toast.makeText(this, "Please enter a valid number of hours", Toast.LENGTH_LONG).show();
+                }
+                else {
+                    BaselineActivityReportHours helper = new BaselineActivityReportHours();
+                    try {
+                        JSONObject j = new JSONObject();
+                        j.put(BaselineActivityReportHours.HOURS_WORKED, hoursWorked);
+                        helper.saveNewActivity(userId, containerId, actionId, j);
+
+                        updateBadges();
+
+                        finish();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 }
                 break;
         }
@@ -137,5 +162,18 @@ implements View.OnClickListener {
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    public void updateBadges(){
+        hoursNew += hoursWorked;
+        JSONObject badges = new JSONObject();
+        try {
+            badges.put(BaselineActivityReportHours.HOURS_NEW, hoursNew);
+        } catch(JSONException e) {
+            e.printStackTrace();
+        }
+
+        project.setBadges(badges);
+        RubberDuckyDB2.Entities.set(project);
     }
 }

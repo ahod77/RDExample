@@ -21,7 +21,7 @@ import java.util.List;
 public final class RubberDuckyDB2 {
 
     public static final String DB_NAME = "rubberducky.db";
-    public static final int DB_VERSION = 4;
+    public static final int DB_VERSION = 5;
 
     // private member
     private static SQLiteDatabase connection = null;
@@ -51,11 +51,11 @@ public final class RubberDuckyDB2 {
     }
 
     public static void populate() {
-        Entity actors = new Entity(0, "Actors", "All Actors", null);
+        Entity actors = new Entity(0, "Actors", "All Actors", null, null);
         Entities.set(actors);
-        Entity actions = new Entity(0, "Actions", "All Actions", null);
+        Entity actions = new Entity(0, "Actions", "All Actions", null, null);
         Entities.set(actions);
-        Entity activities = new Entity(0, "Activities", "All Activities", null);
+        Entity activities = new Entity(0, "Activities", "All Activities", null, null);
         Entities.set(activities);
 
         /*
@@ -64,13 +64,13 @@ public final class RubberDuckyDB2 {
         Entities.set(new Entity(-3, 0, "Activities", "All Activities"));
         */
 
-        Entity Asaf = new Entity(1, "Asaf", "Asaf Hod", null); //Asaf: Change null to BaselineEntityPerson
+        Entity Asaf = new Entity(1, "Asaf", "Asaf Hod", null, null); //Asaf: Change null to BaselineEntityPerson
         Entities.set(Asaf);
-        Entity reportHoursAction =  new Entity(2, "Report Hours", "Reports hours worked", BaselineActivityReportHours.class);
+        Entity reportHoursAction =  new Entity(2, "Report Hours", "Reports hours worked", BaselineActivityReportHours.class, null);
         Entities.set(reportHoursAction);
-        Entity billTimeAction =  new Entity(2, "Bill Time", "Bills time worked", BaselineActivityBillTime.class);
+        Entity billTimeAction =  new Entity(2, "Bill Time", "Bills time worked", BaselineActivityBillTime.class, null);
         Entities.set(billTimeAction);
-        Entity rubberDuckyProject = new Entity(3, "Rubber Ducky", "Current project", null); //Asaf: Change null to BaselineEntitySoftwareProject
+        Entity rubberDuckyProject = new Entity(3, "Rubber Ducky", "Current project", null, null); //Asaf: Change null to BaselineEntitySoftwareProject
         Entities.set(rubberDuckyProject);
 
         // Populate Activities table
@@ -133,13 +133,17 @@ public final class RubberDuckyDB2 {
         public static final String ENTITY_FQCN = "fqcn";
         public static final int ENTITY_FQCN_COL = 4;
 
+        public static final String ENTITY_BADGES = "badges";
+        public static final int ENTITY_BADGES_COL = 5;
+
         public static final String CREATE_ENTITY_TABLE =
                 "CREATE TABLE " + ENTITY_TABLE + " (" +
-                        ENTITY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                        ENTITY_TYPE + " INTEGER NOT NULL, " +
-                        ENTITY_NAME + " TEXT NOT NULL, " +
-                        ENTITY_DESC + " TEXT, " +
-                        ENTITY_FQCN + " TEXT);" //Asaf: Change this to NOT NULL
+                        ENTITY_ID     + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                        ENTITY_TYPE   + " INTEGER NOT NULL, " +
+                        ENTITY_NAME   + " TEXT NOT NULL, " +
+                        ENTITY_DESC   + " TEXT, " +
+                        ENTITY_FQCN   + " TEXT, " + //Asaf: Change this to NOT NULL
+                        ENTITY_BADGES + " TEXT);"
                 ;
 
         public static final String DROP_ENTITY_TABLE =
@@ -170,10 +174,11 @@ public final class RubberDuckyDB2 {
 
         public static long set(Entity e) {
             ContentValues cv = new ContentValues();
-            cv.put(ENTITY_TYPE, e.getType());
-            cv.put(ENTITY_NAME, e.getName());
-            cv.put(ENTITY_DESC, e.getDesc());
-            cv.put(ENTITY_FQCN, e.getFQCN());
+            cv.put(ENTITY_TYPE,   e.getType());
+            cv.put(ENTITY_NAME,   e.getName());
+            cv.put(ENTITY_DESC,   e.getDesc());
+            cv.put(ENTITY_FQCN,   e.getFQCN());
+            cv.put(ENTITY_BADGES, e.getSerializedBadges());
 
             if (e.isNew())
                 return e.setRowId(connection.insertOrThrow(ENTITY_TABLE, null, cv));
@@ -204,14 +209,25 @@ public final class RubberDuckyDB2 {
             return connection.delete(ENTITY_TABLE, null, null);
         }
 
-        private static Entity loadFromCursor(Cursor c) {
+        private static Entity loadFromCursor(Cursor c) { //Add badges
             try {
                 String fqcn = c.getString(ENTITY_FQCN_COL);
+
+                String badges_str = c.getString(ENTITY_BADGES_COL);
+                JSONObject badges = null;
+
+                try {
+                    badges = badges_str == null ? null : new JSONObject(badges_str);
+                } catch (JSONException e) {
+                    badges = null;
+                }
+
                 Entity e = new Entity(c.getLong(ENTITY_ID_COL),
                         c.getInt(ENTITY_TYPE_COL),
                         c.getString(ENTITY_NAME_COL),
                         c.getString(ENTITY_DESC_COL),
-                        fqcn == null ? null : Class.forName(fqcn));
+                        fqcn == null ? null : Class.forName(fqcn),
+                        badges);
                 e.markUnDirty();
 
                 return e;
