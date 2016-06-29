@@ -2,6 +2,7 @@ package com.example.alonassaf.rubberducky;
 
 import android.content.Context;
 import android.content.Intent;
+import android.widget.Toast;
 
 import org.json.JSONObject;
 
@@ -31,16 +32,26 @@ public class BaselineActivityBillTime extends BaseActivity {
 
     @Override
     public Boolean act(Context context, Activity a){
-        Intent intent = new Intent(context, BillTimeDialog.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); //Necessary to start an activity from outside an activity
+        Entity project = RubberDuckyDB2.Entities.get(a.getContainer_id());
+        JSONObject badges = project.getBadges();
+        double hoursNew = badges.optDouble(HOURS_NEW, 0);
 
-        intent.putExtra("rowId", a.getRowId()); //Try using parcelization to pass Activity
-        intent.putExtra("containerId", a.getContainer_id());
-        intent.putExtra("userId", 4L); //Hardcoded user id
-        intent.putExtra("actionId", a.getAction_id());
+        if (hoursNew > 0) {
+            Intent intent = new Intent(context, BillTimeDialog.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); //Necessary to start an activity from outside an activity
 
-        context.startActivity(intent);
-        return true; //Does this need to be a Boolean?
+            intent.putExtra("rowId", a.getRowId()); //Try using parcelization to pass Activity
+            intent.putExtra("containerId", a.getContainer_id());
+            intent.putExtra("userId", ((Globals)context.getApplicationContext()).getUserId()); //Hardcoded user id
+            intent.putExtra("actionId", a.getAction_id());
+
+            context.startActivity(intent);
+            return true; //Does this need to be a Boolean?
+        }
+        else {
+            Toast.makeText(context, "Before you can bill time, you have to report hours!", Toast.LENGTH_LONG).show();
+            return false;
+        }
     }
 
     @Override

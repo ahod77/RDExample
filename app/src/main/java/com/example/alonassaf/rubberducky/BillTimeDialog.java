@@ -30,7 +30,6 @@ implements View.OnClickListener {
 
     private Entity project = null;
     private double hoursNew = 0.0;
-    private double hoursTotal = 0.0;
     private double billHours = 0.0;
 
     @Override
@@ -65,11 +64,7 @@ implements View.OnClickListener {
         project = RubberDuckyDB2.Entities.get(containerId);
         JSONObject badges = project.getBadges();
 
-        if (badges == null) {
-            badges = new JSONObject();
-        }
         hoursNew = badges.optDouble(BaselineActivityBillTime.HOURS_NEW, 0.0);
-        hoursTotal = badges.optDouble(BaselineActivityBillTime.HOURS_TOTAL, 0.0);
 
         //Sets billHours to hoursNew by default
         billHours = hoursNew;
@@ -77,15 +72,8 @@ implements View.OnClickListener {
         //Gets previous billHours value for repeated action
         Activity a = RubberDuckyDB2.Activities.get(rowId);
         if (a.getCreator() != null) {
-            JSONObject j = a.getAction_params();
-            try {
-                double previousBillHours = j.getDouble(BaselineActivityBillTime.BILL_HOURS);
-                if (previousBillHours < hoursNew) { //Changes default value to previous billHours if it is less than hoursNew
-                    billHours = previousBillHours;
-                }
-            } catch (Exception e) {
-                billHours = -1;
-            }
+            double previousBillHours = a.getAction_params().optDouble(BaselineActivityBillTime.BILL_HOURS, -1);
+            billHours = Math.min(previousBillHours, hoursNew); //Changes default value to previous billHours if it is less than hoursNew
         }
 
         display();
@@ -95,37 +83,34 @@ implements View.OnClickListener {
         billTimeTextView.setText(String.valueOf(billHours));
     }
 
+    private double limitHours(double hours)
+    {
+        return Math.max(0.5f, Math.min(hoursNew, hours));
+    }
+
     @Override
     public void onClick(View v){
         switch(v.getId()){
             case R.id.incrementHoursBT:
-                if (billHours < hoursNew)
-                billHours += 0.5f;
+                billHours = limitHours(billHours + 0.5f);
                 display();
                 break;
             case R.id.decrementHoursBT:
-                if (billHours > 0) {
-                    billHours -= 0.5f;
-                }
+                billHours = limitHours(billHours - 0.5f);
                 display();
                 break;
             case R.id.submitBtnBT:
-                if (billHours <= 0){
-                    Toast.makeText(this, "Please enter a valid number of hours", Toast.LENGTH_LONG).show();
-                }
-                else {
-                    BaselineActivityBillTime helper = new BaselineActivityBillTime();
-                    try {
-                        JSONObject j = new JSONObject();
-                        j.put(BaselineActivityBillTime.BILL_HOURS, billHours);
-                        helper.saveNewActivity(userId, containerId, actionId, j);
+                BaselineActivityBillTime helper = new BaselineActivityBillTime();
+                try {
+                    JSONObject j = new JSONObject();
+                    j.put(BaselineActivityBillTime.BILL_HOURS, billHours);
+                    helper.saveNewActivity(userId, containerId, actionId, j);
 
-                        updateBadges();
+                    updateBadges();
 
-                        finish();
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+                    finish();
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
                 break;
         }
@@ -143,18 +128,18 @@ implements View.OnClickListener {
     }
 
     public void updateBadges(){
-        JSONObject badges = new JSONObject();
+        JSONObject badges = project.getBadges();
         hoursNew -= billHours;
-        hoursTotal += billHours;
 
         try {
             badges.put(BaselineActivityBillTime.HOURS_NEW, hoursNew);
-            badges.put(BaselineActivityBillTime.HOURS_TOTAL, hoursTotal);
         } catch (JSONException e){
             e.printStackTrace();
         }
 
         project.setBadges(badges);
         RubberDuckyDB2.Entities.set(project);
+
+        //Write billed record to bank
     }
 }

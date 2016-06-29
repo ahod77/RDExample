@@ -1,22 +1,23 @@
 package com.example.alonassaf.rubberducky;
 
-import android.graphics.Typeface;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
+import android.widget.Button;
 import android.widget.TabHost;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.tabmanager.TabManager;
 
+import org.json.JSONObject;
+
 public class MainActivity extends AppCompatActivity {
     private TabHost tabHost;
     private TabManager tabManager;
+    private Button badgeCount = null, badgeCount2 = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,7 +30,13 @@ public class MainActivity extends AppCompatActivity {
 
         //Gets reference instance to database singleton
         RubberDuckyDB2.connect(this);
-        // RubberDuckyDB2.populate();
+
+
+        for (Entity e : RubberDuckyDB2.Entities.getAllByType(1)){
+            if (e.getName().equals("Asaf")){
+                ((Globals)getApplicationContext()).setUserId(e.getRowId());
+            }
+        }
 
         //Sets up tabhost
         tabHost = (TabHost)findViewById(R.id.tabHost);
@@ -54,10 +61,24 @@ public class MainActivity extends AppCompatActivity {
         }
 
         //Set activity tab to show at launch -- will be changed to most recent
-        //tabHost.setCurrentTab(2); //Is there a way to move this tab to center?
+        tabHost.setCurrentTab(3); //Is there a way to move this tab to center?
         //Set current tab to last tab opened
         if(savedInstanceState != null)
             tabHost.setCurrentTabByTag(savedInstanceState.getString("tab"));
+    }
+
+    public void updateBadges(double b1, double b2) {
+        if (badgeCount != null) badgeCount.setText(String.valueOf(b1));
+        if (badgeCount2 != null) badgeCount2.setText(String.valueOf(b2));
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+
+        JSONObject badges = RubberDuckyDB2.Entities.get(7).getBadges();
+        updateBadges(badges.optDouble(BaselineActivityReportHours.HOURS_TOTAL, 0.0),
+                     badges.optDouble(BaselineActivityReportHours.HOURS_NEW, 0.0));
     }
 
     @Override
@@ -69,7 +90,16 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu){
         getMenuInflater().inflate(R.menu.activity_main, menu);
-        return true;
+
+        MenuItem item = menu.findItem(R.id.badge1);
+        MenuItemCompat.setActionView(item, R.layout.badge_update_count_red);
+        badgeCount = (Button) MenuItemCompat.getActionView(item);
+
+        MenuItem item2 = menu.findItem(R.id.badge2);
+        MenuItemCompat.setActionView(item2, R.layout.badge_update_count_green);
+        badgeCount2 = (Button) MenuItemCompat.getActionView(item2);
+
+        return super.onCreateOptionsMenu(menu);
     }
 
     @Override

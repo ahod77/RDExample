@@ -36,7 +36,7 @@ public class BaselineActivityReportHours extends BaseActivity {
 
         intent.putExtra("rowId", a.getRowId()); //Try using parcelization to pass Activity
         intent.putExtra("containerId", a.getContainer_id());
-        intent.putExtra("userId", 4L); //Hardcoded user id
+        intent.putExtra("userId", ((Globals)context.getApplicationContext()).getUserId()); //Hardcoded user id
         intent.putExtra("actionId", a.getAction_id());
 
         context.startActivity(intent);

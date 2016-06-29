@@ -20,7 +20,7 @@ public class Entity extends DBObject {
         this.name = name;
         this.desc = desc;
         this.fqcn = c == null ? null : c.getName();
-        this.badges = badges;
+        this.badges = badges == null ? new JSONObject() : badges;
     }
 
     public Entity(int type, String name, String desc, Class c, JSONObject badges) {
@@ -79,11 +79,6 @@ public class Entity extends DBObject {
         this.badges = badges;
         markDirty();
     }
-
-//    public void setBadges(JSONObject badges){
-//        this.badges = badges;
-//        markDirty();
-//    }
 
     public String toString() {
         return String.format("%1$d| %2$s %3$s %4$s", getRowId(), type, name, desc);

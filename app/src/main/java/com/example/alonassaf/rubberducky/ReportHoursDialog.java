@@ -36,8 +36,6 @@ implements View.OnClickListener {
     private long actionId = 0;
 
     private Entity project = null;
-    private double hoursNew = 0.0;
-    private double hoursTotal = 0.0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,21 +69,10 @@ implements View.OnClickListener {
         project = RubberDuckyDB2.Entities.get(containerId);
         JSONObject badges = project.getBadges();
 
-        if (badges == null) {
-            badges = new JSONObject();
-        }
-        hoursNew = badges.optDouble(BaselineActivityReportHours.HOURS_NEW, 0.0);
-        hoursTotal = badges.optDouble(BaselineActivityReportHours.HOURS_TOTAL, 0.0);
-
         //Gets previous hoursWorked value for repeated action
         Activity a = RubberDuckyDB2.Activities.get(rowId);
         if (a.getCreator() != null) {
-            JSONObject j = a.getAction_params();
-            try {
-                hoursWorked = j.getDouble(BaselineActivityReportHours.HOURS_WORKED);
-            } catch (Exception e) {
-                hoursWorked = -1;
-            }
+            hoursWorked = a.getAction_params().optDouble(BaselineActivityReportHours.HOURS_WORKED, -1);
         }
 
         display();
@@ -165,10 +152,17 @@ implements View.OnClickListener {
     }
 
     public void updateBadges(){
+        JSONObject badges = project.getBadges();
+
+        double hoursNew = badges.optDouble(BaselineActivityReportHours.HOURS_NEW, 0.0);
+        double hoursTotal = badges.optDouble(BaselineActivityReportHours.HOURS_TOTAL, 0.0);
+
         hoursNew += hoursWorked;
-        JSONObject badges = new JSONObject();
+        hoursTotal += hoursWorked;
+
         try {
             badges.put(BaselineActivityReportHours.HOURS_NEW, hoursNew);
+            badges.put(BaselineActivityBillTime.HOURS_TOTAL, hoursTotal);
         } catch(JSONException e) {
             e.printStackTrace();
         }
