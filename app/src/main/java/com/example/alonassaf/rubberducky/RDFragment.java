@@ -18,29 +18,22 @@ import java.util.List;
  * Created by assaf on 6/6/2016.
  */
 public class RDFragment extends Fragment {
-    //private TextView rdTextView;
     private ListView activityListView;
-    private String currentTabTag;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState){
         View view = inflater.inflate(R.layout.fragment_rd, container, false);
 
-        //rdTextView = (TextView) view.findViewById(R.id.rdTextView);
         activityListView = (ListView) view.findViewById(R.id.activityListView);
 
-        TabHost tabhost = (TabHost) container.getParent().getParent();
-        currentTabTag = tabhost.getCurrentTabTag();
+        //TabHost tabhost = (TabHost) container.getParent().getParent();
 
         refresh();
 
         return view;
     }
 
-    public void refresh(){
-        //String text = "This is tab " + currentTabTag;
-        //rdTextView.setText(text);
-
+    public void refresh() {
         Context context = getActivity().getApplicationContext();
         Bundle bundle = this.getArguments();
         long containerId = bundle.getLong("paneID");
