@@ -7,13 +7,16 @@ import android.view.View;
 import android.widget.CheckBox;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 /**
  * Created by assaf on 6/7/2016.
  */
-public class ActivitiesLayout extends RelativeLayout implements View.OnClickListener {
-    private CheckBox checkBox;
+public class ActivitiesLayout extends RelativeLayout
+implements View.OnClickListener, SlideButtonListener {
+    //private CheckBox checkBox;
     private TextView actTextView;
+    private SlideButton sb;
 
     private Activity activity;
     private Context context;
@@ -22,7 +25,7 @@ public class ActivitiesLayout extends RelativeLayout implements View.OnClickList
         super(context);
     }
 
-    public ActivitiesLayout(Context context, Activity a) {
+    public ActivitiesLayout(final Context context, Activity a) {
         super(context);
 
         //set context
@@ -33,12 +36,14 @@ public class ActivitiesLayout extends RelativeLayout implements View.OnClickList
         inflater.inflate(R.layout.listview_activities, this, true);
 
         //get references to widgets
-        checkBox = (CheckBox) findViewById(R.id.checkBox);
+        //checkBox = (CheckBox) findViewById(R.id.checkBox);
         actTextView = (TextView) findViewById(R.id.activityTextView);
+        sb = (SlideButton) findViewById(R.id.unlockButton);
 
         //set listeners
-        checkBox.setOnClickListener(this);
+        //checkBox.setOnClickListener(this);
         this.setOnClickListener(this);
+        sb.setSlideButtonListener(this);
 
         //set activity data on widgets
         setActivity(a);
@@ -57,24 +62,33 @@ public class ActivitiesLayout extends RelativeLayout implements View.OnClickList
             e.printStackTrace();
         }
 
-        //Checkbox code for setting whether its checked based on db (unnecessary)
-        //May replace with db information for slider
+    }
 
+    @Override
+    public void handleSlide() {
+        try {
+            Class c = Class.forName(RubberDuckyDB2.Entities.get(activity.getAction_id()).getFQCN());
+            BaseActivity ba = (BaseActivity) c.newInstance();
+            ba.act(context, activity);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void onClick(View v){
         switch (v.getId()) {
-            case R.id.checkBox:
-                try {
-                    Class c = Class.forName(RubberDuckyDB2.Entities.get(activity.getAction_id()).getFQCN());
-                    BaseActivity ba = (BaseActivity) c.newInstance();
-                    ba.act(context, activity);
-                }
-                catch (Exception e) {
-                    e.printStackTrace();
-                }
-                break;
+//            case R.id.checkBox:
+//                try {
+////                    Class c = Class.forName(RubberDuckyDB2.Entities.get(activity.getAction_id()).getFQCN());
+////                    BaseActivity ba = (BaseActivity) c.newInstance();
+////                    ba.act(context, activity);
+//                }
+//                catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//                break;
             default:
                 //Code for clicking on screen content
                 break;

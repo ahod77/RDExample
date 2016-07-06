@@ -1,26 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/relativeLayoutActivitesItem">
 
+    <!-- Changed from RelativeLayout to FrameLayout -->
 
-    <CheckBox
+    <!--CheckBox
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/checkBox"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
-        android:layout_margin="5dp" />
+        android:layout_margin="5dp" /-->
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/activityTextView"
         android:text="New Text"
-        android:layout_alignBaseline="@+id/checkBox"
-        android:layout_alignBottom="@+id/checkBox"
-        android:layout_toRightOf="@+id/checkBox"
-        android:layout_centerHorizontal="true"
+        android:layout_gravity="center_horizontal|top"
+        android:paddingTop="14dp"
         android:textStyle="bold" />
-</RelativeLayout>
+
+    <com.example.alonassaf.rubberducky.SlideButton
+        android:id="@+id/unlockButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clickable="false"
+        android:max="100"
+        android:progressDrawable="@android:color/transparent"
+        android:thumb="@android:drawable/sym_def_app_icon">
+    </com.example.alonassaf.rubberducky.SlideButton>
+
+</FrameLayout>

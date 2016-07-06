@@ -7,6 +7,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
+import android.widget.HorizontalScrollView;
 import android.widget.TabHost;
 import android.widget.Toast;
 
@@ -27,6 +28,9 @@ public class MainActivity extends AppCompatActivity {
         //Sets up action bar
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        //Reference to horizontal scrollview
+        HorizontalScrollView s = (HorizontalScrollView) findViewById(R.id.tabHsv);
 
         //Gets reference instance to database singleton
         RubberDuckyDB2.connect(this);
@@ -62,6 +66,9 @@ public class MainActivity extends AppCompatActivity {
 
         //Set activity tab to show at launch -- will be changed to most recent
         tabHost.setCurrentTab(3); //Is there a way to move this tab to center?
+
+        s.fullScroll(HorizontalScrollView.FOCUS_RIGHT);
+
         //Set current tab to last tab opened
         if(savedInstanceState != null)
             tabHost.setCurrentTabByTag(savedInstanceState.getString("tab"));
