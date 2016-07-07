@@ -21,7 +21,7 @@ import java.util.List;
 public final class RubberDuckyDB2 {
 
     public static final String DB_NAME = "rubberducky.db";
-    public static final int DB_VERSION = 5;
+    public static final int DB_VERSION = 6;
 
     // private member
     private static SQLiteDatabase connection = null;
@@ -74,8 +74,8 @@ public final class RubberDuckyDB2 {
         Entities.set(rubberDuckyProject);
 
         // Populate Activities table
-        Activities.set(new Activity(null, rubberDuckyProject, reportHoursAction, null));
-        Activities.set(new Activity(null, rubberDuckyProject, billTimeAction, null));
+        Activities.set(new Activity(null, rubberDuckyProject, reportHoursAction, null, 0));
+        Activities.set(new Activity(null, rubberDuckyProject, billTimeAction, null, 0));
 
         // Populates settings table
         Settings.set(new Setting("userId", Asaf.getRowId()));
@@ -261,6 +261,9 @@ public final class RubberDuckyDB2 {
         public static final String ACTIVITY_PARAMS = "params";
         public static final int ACTIVITY_PARAMS_COL = 5;
 
+        public static final String ACTIVITY_STATUS = "status";
+        public static final int ACTIVITY_STATUS_COL = 6;
+
         public static final String CREATE_ACTIVITY_TABLE =
                 "CREATE TABLE " + ACTIVITY_TABLE + " (" +
                         ACTIVITY_ID          + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -268,7 +271,8 @@ public final class RubberDuckyDB2 {
                         ACTIVITY_CREATOR     + " INTEGER, " +               //References entity table
                         ACTIVITY_CONTAINER   + " INTEGER NOT NULL, " +      //""
                         ACTIVITY_ACTION      + " INTEGER NOT NULL," +       //""
-                        ACTIVITY_PARAMS      + " TEXT);"                    // JSON coded
+                        ACTIVITY_PARAMS      + " TEXT," +                   // JSON coded
+                        ACTIVITY_STATUS      + " INTEGER NOT NULL);"
                 ;
 
         public static final String DROP_ACTIVITY_TABLE =
@@ -303,6 +307,7 @@ public final class RubberDuckyDB2 {
             cv.put(ACTIVITY_CREATOR, a.getCreator_id());
             cv.put(ACTIVITY_ACTION, a.getAction_id());
             cv.put(ACTIVITY_PARAMS, a.getSerializedParams());
+            cv.put(ACTIVITY_STATUS, a.getStatus());
 
             if (a.isNew())
                 return a.setRowId(connection.insertOrThrow(ACTIVITY_TABLE, null, cv));
@@ -348,7 +353,8 @@ public final class RubberDuckyDB2 {
                                       c.getLong(ACTIVITY_CREATOR_COL),
                                       c.getLong(ACTIVITY_CONTAINER_COL),
                                       c.getLong(ACTIVITY_ACTION_COL),
-                                      params);
+                                      params,
+                                      c.getLong(ACTIVITY_STATUS_COL));
             a.markUnDirty();
 
             return a;

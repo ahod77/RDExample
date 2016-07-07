@@ -1,6 +1,7 @@
 package com.example.alonassaf.rubberducky;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -18,7 +19,7 @@ import org.json.JSONObject;
 public class MainActivity extends AppCompatActivity {
     private TabHost tabHost;
     private TabManager tabManager;
-    private Button badgeCount = null, badgeCount2 = null;
+    private Button badgeCount1 = null, badgeCount2 = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,7 +52,6 @@ public class MainActivity extends AppCompatActivity {
         long[] pinnedPanes = RubberDuckyDB2.Settings.get("pinnedPanes").getLongs();
 
         //Tab generation
-        int i = 0;
         for (long pp : pinnedPanes) {
             String tabName = RubberDuckyDB2.Entities.get(pp).getName();
             TabHost.TabSpec spec = tabHost.newTabSpec(tabName);
@@ -74,18 +74,19 @@ public class MainActivity extends AppCompatActivity {
             tabHost.setCurrentTabByTag(savedInstanceState.getString("tab"));
     }
 
-    public void updateBadges(double b1, double b2) {
-        if (badgeCount != null) badgeCount.setText(String.valueOf(b1));
+    public void updateBadges() {
+        JSONObject badges = RubberDuckyDB2.Entities.get(7).getBadges();
+        double b1 = badges.optDouble(BaselineActivityReportHours.HOURS_TOTAL, 0.0);
+        double b2 = badges.optDouble(BaselineActivityReportHours.HOURS_NEW, 0.0);
+
+        if (badgeCount1 != null) badgeCount1.setText(String.valueOf(b1));
         if (badgeCount2 != null) badgeCount2.setText(String.valueOf(b2));
     }
 
     @Override
     public void onResume(){
         super.onResume();
-
-        JSONObject badges = RubberDuckyDB2.Entities.get(7).getBadges();
-        updateBadges(badges.optDouble(BaselineActivityReportHours.HOURS_TOTAL, 0.0),
-                     badges.optDouble(BaselineActivityReportHours.HOURS_NEW, 0.0));
+        updateBadges();
     }
 
     @Override
@@ -100,11 +101,13 @@ public class MainActivity extends AppCompatActivity {
 
         MenuItem item = menu.findItem(R.id.badge1);
         MenuItemCompat.setActionView(item, R.layout.badge_update_count_red);
-        badgeCount = (Button) MenuItemCompat.getActionView(item);
+        badgeCount1 = (Button) MenuItemCompat.getActionView(item);
 
         MenuItem item2 = menu.findItem(R.id.badge2);
         MenuItemCompat.setActionView(item2, R.layout.badge_update_count_green);
         badgeCount2 = (Button) MenuItemCompat.getActionView(item2);
+
+        updateBadges();
 
         return super.onCreateOptionsMenu(menu);
     }

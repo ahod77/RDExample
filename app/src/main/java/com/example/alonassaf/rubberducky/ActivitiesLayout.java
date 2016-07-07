@@ -2,6 +2,10 @@ package com.example.alonassaf.rubberducky;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.AnimationDrawable;
+import android.graphics.drawable.ColorDrawable;
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.CheckBox;
@@ -9,12 +13,14 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 /**
  * Created by assaf on 6/7/2016.
  */
 public class ActivitiesLayout extends RelativeLayout
-implements View.OnClickListener, SlideButtonListener {
-    //private CheckBox checkBox;
+implements SlideButtonListener {
     private TextView actTextView;
     private SlideButton sb;
 
@@ -41,8 +47,6 @@ implements View.OnClickListener, SlideButtonListener {
         sb = (SlideButton) findViewById(R.id.unlockButton);
 
         //set listeners
-        //checkBox.setOnClickListener(this);
-        this.setOnClickListener(this);
         sb.setSlideButtonListener(this);
 
         //set activity data on widgets
@@ -57,12 +61,46 @@ implements View.OnClickListener, SlideButtonListener {
             Class c = Class.forName(RubberDuckyDB2.Entities.get(activity.getAction_id()).getFQCN());
             BaseActivity ba = (BaseActivity) c.newInstance();
             actTextView.setText(ba.getDescription(activity));
+
+            if (activity.getStatus() == 1) {
+                final AnimationDrawable drawable = new AnimationDrawable();
+                final Handler handler = new Handler();
+
+                drawable.addFrame(new ColorDrawable(Color.RED), 400);
+                drawable.addFrame(new ColorDrawable(Color.GREEN), 400);
+                drawable.setOneShot(false);
+
+                setBackground(drawable);
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        drawable.start();
+                    }
+                }, 100);
+
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        drawable.stop();
+                        setBackground(null);
+
+                        activity.setStatus(0);
+                        RubberDuckyDB2.Activities.set(activity);
+                    }
+                }, 5000 + (int) (Math.random() * 10000));
+            }
         }
         catch (Exception e) {
             e.printStackTrace();
         }
 
     }
+
+    private void stopAnimation()
+    {
+
+    }
+
 
     @Override
     public void handleSlide() {
@@ -73,25 +111,6 @@ implements View.OnClickListener, SlideButtonListener {
         }
         catch (Exception e) {
             e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void onClick(View v){
-        switch (v.getId()) {
-//            case R.id.checkBox:
-//                try {
-////                    Class c = Class.forName(RubberDuckyDB2.Entities.get(activity.getAction_id()).getFQCN());
-////                    BaseActivity ba = (BaseActivity) c.newInstance();
-////                    ba.act(context, activity);
-//                }
-//                catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//                break;
-            default:
-                //Code for clicking on screen content
-                break;
         }
     }
 }

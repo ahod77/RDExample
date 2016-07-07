@@ -59,6 +59,6 @@ public class BaselineActivityBillTime extends BaseActivity {
         Entity user = RubberDuckyDB2.Entities.get(userId);
         Entity container = RubberDuckyDB2.Entities.get(containerId);
         Entity action = RubberDuckyDB2.Entities.get(actionId);
-        RubberDuckyDB2.Activities.set(new Activity(user, container, action, actionParams));
+        RubberDuckyDB2.Activities.set(new Activity(user, container, action, actionParams, 1));
     }
 }
