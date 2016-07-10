@@ -20,7 +20,11 @@ public class BaseActivity {
         return false;
     }
 
-    public String getDescription(Activity a){
+    public String getDescription(Context context, Activity a){
         return null;
+    }
+
+    public Boolean isActionable(Context context, Activity a) {
+        return false;
     }
 }

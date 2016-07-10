@@ -60,7 +60,11 @@ implements SlideButtonListener {
         try {
             Class c = Class.forName(RubberDuckyDB2.Entities.get(activity.getAction_id()).getFQCN());
             BaseActivity ba = (BaseActivity) c.newInstance();
-            actTextView.setText(ba.getDescription(activity));
+
+            if (!ba.isActionable(context, activity)) {
+                sb.setVisibility(View.GONE);
+            }
+            actTextView.setText(ba.getDescription(context, activity));
 
             if (activity.getStatus() == 1) {
                 final AnimationDrawable drawable = new AnimationDrawable();

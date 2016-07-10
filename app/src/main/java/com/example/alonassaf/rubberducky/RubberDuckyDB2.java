@@ -21,7 +21,7 @@ import java.util.List;
 public final class RubberDuckyDB2 {
 
     public static final String DB_NAME = "rubberducky.db";
-    public static final int DB_VERSION = 6;
+    public static final int DB_VERSION = 7;
 
     // private member
     private static SQLiteDatabase connection = null;
@@ -64,18 +64,61 @@ public final class RubberDuckyDB2 {
         Entities.set(new Entity(-3, 0, "Activities", "All Activities"));
         */
 
-        Entity Asaf = new Entity(1, "Asaf", "Asaf Hod", null, null); //Asaf: Change null to BaselineEntityPerson
+        Entity SimplIT = new Entity(1, "SimplIT", "SimplIT Corp", null, null); //Asaf: Change null to BaselineEntityCorp
+        Entities.set(SimplIT);
+
+        JSONObject params = new JSONObject();
+        try {
+            params.put("memberOf", SimplIT.getRowId());
+        } catch (JSONException e) {
+            params = null;
+        }
+
+        Entity Alon = new Entity(1, "Alon", "Alon Hod", null, params); //Asaf: Change null to BaselineEntityPerson
+        Entities.set(Alon);
+        Entity Asaf = new Entity(1, "Asaf", "Asaf Hod", null, params); //Asaf: Change null to BaselineEntityPerson
         Entities.set(Asaf);
+
+        Entity messageAction =  new Entity(2, "Message", "Free-text message", BaselineActionMessage.class, null);
+        Entities.set(messageAction);
         Entity reportHoursAction =  new Entity(2, "Report Hours", "Reports hours worked", BaselineActivityReportHours.class, null);
         Entities.set(reportHoursAction);
         Entity billTimeAction =  new Entity(2, "Bill Time", "Bills time worked", BaselineActivityBillTime.class, null);
         Entities.set(billTimeAction);
-        Entity rubberDuckyProject = new Entity(3, "Rubber Ducky", "Current project", null, null); //Asaf: Change null to BaselineEntitySoftwareProject
+
+
+        params = new JSONObject();
+        long[] ids = {Alon.getRowId(), Asaf.getRowId() };
+        try {
+            JSONArray arr = new JSONArray();
+            for (long v: ids) { arr.put(v); }
+            params.put("participants", arr);
+        } catch (JSONException e) {
+            params = null;
+        }
+
+        Entity rubberDuckyProject = new Entity(3, "Rubber Ducky", "Current project", null, params); //Asaf: Change null to BaselineEntitySoftwareProject
         Entities.set(rubberDuckyProject);
 
         // Populate Activities table
         Activities.set(new Activity(null, rubberDuckyProject, reportHoursAction, null, 0));
         Activities.set(new Activity(null, rubberDuckyProject, billTimeAction, null, 0));
+
+        params = new JSONObject();
+        try {
+            params.put("text", "Good Job! Rubber Ducky really looks great. BUT, we need it ready by tomorrow because we have to show it to some potential investors.");
+        } catch (JSONException e) {
+            params = null;
+        }
+        Activities.set(new Activity(Alon, rubberDuckyProject, messageAction, params, 1));
+
+        params = new JSONObject();
+        try {
+            params.put("text", "Thanks, bud!");
+        } catch (JSONException e) {
+            params = null;
+        }
+        Activities.set(new Activity(Asaf, rubberDuckyProject, messageAction, params, 0));
 
         // Populates settings table
         Settings.set(new Setting("userId", Asaf.getRowId()));

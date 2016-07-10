@@ -43,6 +43,12 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        for (Entity e : RubberDuckyDB2.Entities.getAllByType(2)){
+            if (e.getName().equals("Message")){
+                ((Globals)getApplicationContext()).setMessageAction(e.getRowId());
+            }
+        }
+
         //Sets up tabhost
         tabHost = (TabHost)findViewById(R.id.tabHost);
         tabHost.setup();

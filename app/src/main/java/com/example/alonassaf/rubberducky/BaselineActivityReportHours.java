@@ -15,7 +15,7 @@ public class BaselineActivityReportHours extends BaseActivity {
     public static final String HOURS_WORKED = "hoursWorked";
 
     @Override
-    public String getDescription(Activity a){
+    public String getDescription(Context context, Activity a){
         if(a.getCreator() == null){
             return "Report Hours >>";
         }
@@ -55,5 +55,10 @@ public class BaselineActivityReportHours extends BaseActivity {
         Entity container = RubberDuckyDB2.Entities.get(containerId);
         Entity action = RubberDuckyDB2.Entities.get(actionId);
         RubberDuckyDB2.Activities.set(new Activity(user, container, action, actionParams, 1));
+    }
+
+    @Override
+    public Boolean isActionable(Context context, Activity a) {
+        return true;
     }
 }

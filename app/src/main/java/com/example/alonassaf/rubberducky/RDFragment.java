@@ -1,7 +1,9 @@
 package com.example.alonassaf.rubberducky;
 
 import android.content.Context;
+import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -10,9 +12,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TabHost;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,9 +28,10 @@ import java.util.List;
  * Created by assaf on 6/6/2016.
  */
 public class RDFragment extends Fragment
-implements TextView.OnEditorActionListener {
+implements TextView.OnEditorActionListener, View.OnClickListener {
     private ListView activityListView;
-    private EditText editText; //Change name
+    private EditText inputText;
+    private ImageButton sendButton;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState){
@@ -31,12 +39,14 @@ implements TextView.OnEditorActionListener {
 
         //Get widget references
         activityListView = (ListView) view.findViewById(R.id.activityListView);
-        editText = (EditText) view.findViewById(R.id.editText);
+        inputText = (EditText) view.findViewById(R.id.inputText);
+        sendButton = (ImageButton) view.findViewById(R.id.sendButton);
 
         //TabHost tabhost = (TabHost) container.getParent().getParent();
 
         //Set listeners
-        editText.setOnEditorActionListener(this);
+        inputText.setOnEditorActionListener(this);
+        sendButton.setOnClickListener(this);
 
         refresh();
 
@@ -68,5 +78,44 @@ implements TextView.OnEditorActionListener {
     public void onResume(){
         super.onResume();
         refresh();
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.sendButton:
+                String message = inputText.getText().toString();
+                inputText.setText(null);
+
+                if (message == null || message.equals(""))
+                    break;
+
+                JSONObject params = new JSONObject();
+                try {
+                    params.put("text", message);
+                } catch (JSONException e) {
+                    params = null;
+                }
+
+                long userId = ((Globals) getActivity().getApplicationContext()).getUserId();
+                long containerId = this.getArguments().getLong("paneID");
+                long actionId = ((Globals)getActivity().getApplicationContext()).getActionId();
+                Entity action = RubberDuckyDB2.Entities.get(actionId);
+                try {
+                    Class c = Class.forName(action.getFQCN());
+                    BaseActivity ba = (BaseActivity) c.newInstance();
+
+                    ba.saveNewActivity(userId, containerId, actionId, params);
+
+                    refresh();
+
+                    MediaPlayer mp = MediaPlayer.create(getActivity(), Settings.System.DEFAULT_NOTIFICATION_URI);
+                    mp.start();
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
+                break;
+        }
     }
 }

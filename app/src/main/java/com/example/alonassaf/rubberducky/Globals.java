@@ -7,6 +7,7 @@ import android.app.Application;
  */
 public class Globals extends Application {
     private long userId;
+    private long actionId;
 
     public long getUserId(){
         return userId;
@@ -14,5 +15,13 @@ public class Globals extends Application {
 
     public void setUserId(long userId){
         this.userId = userId;
+    }
+
+    public void setMessageAction(long actionId) {
+        this.actionId = actionId;
+    }
+
+    public long getActionId() {
+        return actionId;
     }
 }
