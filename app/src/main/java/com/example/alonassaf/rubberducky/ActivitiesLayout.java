@@ -1,20 +1,14 @@
 package com.example.alonassaf.rubberducky;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.CheckBox;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
-
-import java.util.Timer;
-import java.util.TimerTask;
 
 /**
  * Created by assaf on 6/7/2016.
@@ -99,12 +93,6 @@ implements SlideButtonListener {
         }
 
     }
-
-    private void stopAnimation()
-    {
-
-    }
-
 
     @Override
     public void handleSlide() {
