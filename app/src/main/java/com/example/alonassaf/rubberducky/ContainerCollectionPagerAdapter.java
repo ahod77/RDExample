@@ -44,4 +44,8 @@ public class ContainerCollectionPagerAdapter extends FragmentStatePagerAdapter {
     public CharSequence getPageTitle(int position) {
         return pinnedPanesNames[position];
     }
+
+    public long getContainerIdForItem(int i) {
+        return pinnedPanes[i];
+    }
 }

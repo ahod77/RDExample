@@ -1,92 +1,110 @@
 package com.example.alonassaf.rubberducky;
 
+import android.app.ActionBar;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v4.view.MenuItemCompat;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
-import android.widget.HorizontalScrollView;
-import android.widget.TabHost;
 import android.widget.Toast;
-
-import com.google.tabmanager.TabManager;
-
 import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity {
-    private TabHost tabHost;
-    private TabManager tabManager;
+
+    ContainerCollectionPagerAdapter containersAdapter;
+    ViewPager viewPager;
+
     private Button badgeCount1 = null, badgeCount2 = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        //Sets up action bar
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
-        //Reference to horizontal scrollview
-        HorizontalScrollView s = (HorizontalScrollView) findViewById(R.id.tabHsv);
-
-        //Gets reference instance to database singleton
+        // Gets reference instance to database singleton
         RubberDuckyDB2.connect(this);
 
-
+        // Load a few globals
+        // Noam: fix this, not elegant
         for (Entity e : RubberDuckyDB2.Entities.getAllByType(1)){
             if (e.getName().equals("Asaf")){
-                ((Globals)getApplicationContext()).setUserId(e.getRowId());
+                ((Globals) getApplicationContext()).setUserId(e.getRowId());
             }
         }
-
         for (Entity e : RubberDuckyDB2.Entities.getAllByType(2)){
             if (e.getName().equals("Message")){
-                ((Globals)getApplicationContext()).setMessageAction(e.getRowId());
+                ((Globals) getApplicationContext()).setMessageAction(e.getRowId());
             }
         }
 
-        //Sets up tabhost
-        tabHost = (TabHost)findViewById(R.id.tabHost);
-        tabHost.setup();
-        tabManager = new TabManager(this, tabHost, R.id.realtabcontent);
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.paged_tabs);
 
-        //Query for pinnedPanes JSON object for tab generation
+        containersAdapter = new ContainerCollectionPagerAdapter(getSupportFragmentManager());
+        viewPager = (ViewPager) findViewById(R.id.pager);
+        viewPager.setAdapter(containersAdapter);
+        viewPager.setCurrentItem(containersAdapter.getCount() + 1);
+
+        viewPager.addOnPageChangeListener(
+                new ViewPager.SimpleOnPageChangeListener() {
+                    @Override
+                    public void onPageSelected(int position) {
+                        super.onPageSelected(position);
+                        updateBadges();
+                    }
+                });
+
+
+        /*
+        final ActionBar actionBar = getActionBar();
+
+        // Specify that tabs should be displayed in the action bar.
+        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+
+        // Create a tab listener that is called when the user changes tabs.
+        ActionBar.TabListener tabListener = new ActionBar.TabListener() {
+            public void onTabSelected(ActionBar.Tab tab, FragmentTransaction ft) {
+                // When the tab is selected, switch to the
+                // corresponding page in the ViewPager.
+                viewPager.setCurrentItem(tab.getPosition());
+            }
+
+            public void onTabUnselected(ActionBar.Tab tab, FragmentTransaction ft) {
+                // hide the given tab
+            }
+
+            public void onTabReselected(ActionBar.Tab tab, FragmentTransaction ft) {
+                // probably ignore this event
+            }
+        };
+
         long[] pinnedPanes = RubberDuckyDB2.Settings.get("pinnedPanes").getLongs();
-
-        //Tab generation
         for (long pp : pinnedPanes) {
-            String tabName = RubberDuckyDB2.Entities.get(pp).getName();
-            TabHost.TabSpec spec = tabHost.newTabSpec(tabName);
-            spec.setIndicator(tabName);
-
-            Bundle bundle = new Bundle();
-            bundle.putLong("paneID", pp);
-            //Should add paneType here and to bundle to decide which fragment to add and for decisions within fragment class?
-
-            tabManager.addTab(spec, RDFragment.class, bundle);
+            actionBar.addTab(
+                    actionBar.newTab()
+                            .setText(RubberDuckyDB2.Entities.get(pp).getName())
+                            .setTabListener(tabListener));
         }
 
-        //Set activity tab to show at launch -- will be changed to most recent
-        tabHost.setCurrentTab(3); //Is there a way to move this tab to center?
+        viewPager.setOnPageChangeListener(
+                new ViewPager.SimpleOnPageChangeListener() {
+                    @Override
+                    public void onPageSelected(int position) {
+                        // When swiping between pages, select the
+                        // corresponding tab.
+                        getActionBar().setSelectedNavigationItem(position);
+                    }
+                });
+        */
 
-        s.fullScroll(HorizontalScrollView.FOCUS_RIGHT);
+
+        //Set activity tab to show at launch -- will be changed to most recent
+//        tabHost.setCurrentTab(3); //Is there a way to move this tab to center?
+
+//        s.fullScroll(HorizontalScrollView.FOCUS_RIGHT);
 
         //Set current tab to last tab opened
-        if(savedInstanceState != null)
-            tabHost.setCurrentTabByTag(savedInstanceState.getString("tab"));
-    }
-
-    public void updateBadges() {
-        JSONObject badges = RubberDuckyDB2.Entities.get(7).getBadges();
-        double b1 = badges.optDouble(BaselineActivityReportHours.HOURS_TOTAL, 0.0);
-        double b2 = badges.optDouble(BaselineActivityReportHours.HOURS_NEW, 0.0);
-
-        if (badgeCount1 != null) badgeCount1.setText(String.valueOf(b1));
-        if (badgeCount2 != null) badgeCount2.setText(String.valueOf(b2));
+//        if(savedInstanceState != null)
+//            tabHost.setCurrentTabByTag(savedInstanceState.getString("tab"));
     }
 
     @Override
@@ -98,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(Bundle outState){
         super.onSaveInstanceState(outState);
-        outState.putString("tab", tabHost.getCurrentTabTag());
+  //      outState.putString("tab", tabHost.getCurrentTabTag());
     }
 
     @Override
@@ -109,9 +127,9 @@ public class MainActivity extends AppCompatActivity {
         MenuItemCompat.setActionView(item, R.layout.badge_update_count_red);
         badgeCount1 = (Button) MenuItemCompat.getActionView(item);
 
-        MenuItem item2 = menu.findItem(R.id.badge2);
-        MenuItemCompat.setActionView(item2, R.layout.badge_update_count_green);
-        badgeCount2 = (Button) MenuItemCompat.getActionView(item2);
+        item = menu.findItem(R.id.badge2);
+        MenuItemCompat.setActionView(item, R.layout.badge_update_count_green);
+        badgeCount2 = (Button) MenuItemCompat.getActionView(item);
 
         updateBadges();
 
@@ -137,4 +155,15 @@ public class MainActivity extends AppCompatActivity {
                 return super.onOptionsItemSelected(item);
         }
     }
+
+    public void updateBadges() {
+        long containerId = containersAdapter.getContainerIdForItem(viewPager.getCurrentItem());
+        JSONObject badges = RubberDuckyDB2.Entities.get(containerId).getBadges();
+        double b1 = badges.optDouble(BaselineActivityReportHours.HOURS_TOTAL, 0.0);
+        double b2 = badges.optDouble(BaselineActivityReportHours.HOURS_NEW, 0.0);
+
+        if (badgeCount1 != null) badgeCount1.setText(String.valueOf(b1));
+        if (badgeCount2 != null) badgeCount2.setText(String.valueOf(b2));
+    }
+
 }
