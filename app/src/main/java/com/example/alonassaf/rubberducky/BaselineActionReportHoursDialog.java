@@ -1,11 +1,9 @@
 package com.example.alonassaf.rubberducky;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
@@ -18,7 +16,7 @@ import org.json.JSONObject;
 /**
  * Created by assaf on 6/15/2016.
  */
-public class ReportHoursDialog extends AppCompatActivity
+public class BaselineActionReportHoursDialog extends AppCompatActivity
 implements View.OnClickListener {
 
     private TextView hoursWorkedTextView;
@@ -72,7 +70,7 @@ implements View.OnClickListener {
         //Gets previous hoursWorked value for repeated action
         Activity a = RubberDuckyDB2.Activities.get(rowId);
         if (a.getCreator() != null) {
-            hoursWorked = a.getAction_params().optDouble(BaselineActivityReportHours.HOURS_WORKED, -1);
+            hoursWorked = a.getAction_params().optDouble(BaselineActionReportHours.HOURS_WORKED, -1);
         }
 
         display();
@@ -123,10 +121,10 @@ implements View.OnClickListener {
                     Toast.makeText(this, "Please enter a valid number of hours", Toast.LENGTH_LONG).show();
                 }
                 else {
-                    BaselineActivityReportHours helper = new BaselineActivityReportHours();
+                    BaselineActionReportHours helper = new BaselineActionReportHours();
                     try {
                         JSONObject j = new JSONObject();
-                        j.put(BaselineActivityReportHours.HOURS_WORKED, hoursWorked);
+                        j.put(BaselineActionReportHours.HOURS_WORKED, hoursWorked);
                         helper.saveNewActivity(userId, containerId, actionId, j);
 
                         updateBadges();
@@ -154,15 +152,15 @@ implements View.OnClickListener {
     public void updateBadges(){
         JSONObject badges = project.getBadges();
 
-        double hoursNew = badges.optDouble(BaselineActivityReportHours.HOURS_NEW, 0.0);
-        double hoursTotal = badges.optDouble(BaselineActivityReportHours.HOURS_TOTAL, 0.0);
+        double hoursNew = badges.optDouble(BaselineActionReportHours.HOURS_NEW, 0.0);
+        double hoursTotal = badges.optDouble(BaselineActionReportHours.HOURS_TOTAL, 0.0);
 
         hoursNew += hoursWorked;
         hoursTotal += hoursWorked;
 
         try {
-            badges.put(BaselineActivityReportHours.HOURS_NEW, hoursNew);
-            badges.put(BaselineActivityBillTime.HOURS_TOTAL, hoursTotal);
+            badges.put(BaselineActionReportHours.HOURS_NEW, hoursNew);
+            badges.put(BaselineActionBillTime.HOURS_TOTAL, hoursTotal);
         } catch(JSONException e) {
             e.printStackTrace();
         }

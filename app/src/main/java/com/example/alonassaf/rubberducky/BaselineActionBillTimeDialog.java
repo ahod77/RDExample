@@ -8,7 +8,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -16,7 +15,7 @@ import org.json.JSONObject;
 /**
  * Created by assaf on 6/15/2016.
  */
-public class BillTimeDialog extends AppCompatActivity
+public class BaselineActionBillTimeDialog extends AppCompatActivity
 implements View.OnClickListener {
     private TextView billTimeTextView;
     private Button incrementHoursButton;
@@ -64,7 +63,7 @@ implements View.OnClickListener {
         project = RubberDuckyDB2.Entities.get(containerId);
         JSONObject badges = project.getBadges();
 
-        hoursNew = badges.optDouble(BaselineActivityBillTime.HOURS_NEW, 0.0);
+        hoursNew = badges.optDouble(BaselineActionBillTime.HOURS_NEW, 0.0);
 
         //Sets billHours to hoursNew by default
         billHours = hoursNew;
@@ -72,7 +71,7 @@ implements View.OnClickListener {
         //Gets previous billHours value for repeated action
         Activity a = RubberDuckyDB2.Activities.get(rowId);
         if (a.getCreator() != null) {
-            double previousBillHours = a.getAction_params().optDouble(BaselineActivityBillTime.BILL_HOURS, -1);
+            double previousBillHours = a.getAction_params().optDouble(BaselineActionBillTime.BILL_HOURS, -1);
             billHours = Math.min(previousBillHours, hoursNew); //Changes default value to previous billHours if it is less than hoursNew
         }
 
@@ -100,10 +99,10 @@ implements View.OnClickListener {
                 display();
                 break;
             case R.id.submitBtnBT:
-                BaselineActivityBillTime helper = new BaselineActivityBillTime();
+                BaselineActionBillTime helper = new BaselineActionBillTime();
                 try {
                     JSONObject j = new JSONObject();
-                    j.put(BaselineActivityBillTime.BILL_HOURS, billHours);
+                    j.put(BaselineActionBillTime.BILL_HOURS, billHours);
                     helper.saveNewActivity(userId, containerId, actionId, j);
 
                     updateBadges();
@@ -132,7 +131,7 @@ implements View.OnClickListener {
         hoursNew -= billHours;
 
         try {
-            badges.put(BaselineActivityBillTime.HOURS_NEW, hoursNew);
+            badges.put(BaselineActionBillTime.HOURS_NEW, hoursNew);
         } catch (JSONException e){
             e.printStackTrace();
         }

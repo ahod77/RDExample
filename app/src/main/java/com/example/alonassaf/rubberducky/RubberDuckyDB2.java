@@ -81,9 +81,9 @@ public final class RubberDuckyDB2 {
 
         Entity messageAction =  new Entity(2, "Message", "Free-text message", BaselineActionMessage.class, null);
         Entities.set(messageAction);
-        Entity reportHoursAction =  new Entity(2, "Report Hours", "Reports hours worked", BaselineActivityReportHours.class, null);
+        Entity reportHoursAction =  new Entity(2, "Report Hours", "Reports hours worked", BaselineActionReportHours.class, null);
         Entities.set(reportHoursAction);
-        Entity billTimeAction =  new Entity(2, "Bill Time", "Bills time worked", BaselineActivityBillTime.class, null);
+        Entity billTimeAction =  new Entity(2, "Bill Time", "Bills time worked", BaselineActionBillTime.class, null);
         Entities.set(billTimeAction);
 
 

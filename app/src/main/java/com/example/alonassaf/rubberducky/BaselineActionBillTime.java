@@ -9,7 +9,7 @@ import org.json.JSONObject;
 /**
  * Created by assaf on 6/13/2016.
  */
-public class BaselineActivityBillTime extends BaseActivity {
+public class BaselineActionBillTime extends BaseAction {
 
     public static final String HOURS_TOTAL = "hoursTotal";
     public static final String HOURS_NEW = "hoursNew";
@@ -37,7 +37,7 @@ public class BaselineActivityBillTime extends BaseActivity {
         double hoursNew = badges.optDouble(HOURS_NEW, 0);
 
         if (hoursNew > 0) {
-            Intent intent = new Intent(context, BillTimeDialog.class);
+            Intent intent = new Intent(context, BaselineActionBillTimeDialog.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); //Necessary to start an activity from outside an activity
 
             intent.putExtra("rowId", a.getRowId()); //Try using parcelization to pass Activity

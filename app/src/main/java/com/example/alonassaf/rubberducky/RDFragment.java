@@ -5,18 +5,25 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.TabHost;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by assaf on 6/6/2016.
@@ -55,8 +62,18 @@ implements TextView.OnEditorActionListener, View.OnClickListener {
 
         ArrayList<Activity> activities = (ArrayList)RubberDuckyDB2.Activities.getAllByContainer(containerId);
 
-        RDAdapter adapter = new RDAdapter(context, activities);
+        final RDAdapter adapter = new RDAdapter(context, activities);
         activityListView.setAdapter(adapter);
+
+        //Scrolls listview to bottom
+        activityListView.post(new Runnable() {
+            @Override
+            public void run() {
+                // Select the last row so it will scroll into view...
+                activityListView.setSelection(adapter.getCount() - 1);
+            }
+        });
+
     }
 
     @Override
@@ -98,11 +115,16 @@ implements TextView.OnEditorActionListener, View.OnClickListener {
                 Entity action = RubberDuckyDB2.Entities.get(actionId);
                 try {
                     Class c = Class.forName(action.getFQCN());
-                    BaseActivity ba = (BaseActivity) c.newInstance();
+                    BaseAction ba = (BaseAction) c.newInstance();
 
                     ba.saveNewActivity(userId, containerId, actionId, params);
 
                     refresh();
+
+                    //Close keyboard on send
+                    Context context = getActivity();
+                    InputMethodManager imm = (InputMethodManager) context.getSystemService(context.INPUT_METHOD_SERVICE);
+                    imm.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
 
                     MediaPlayer mp = MediaPlayer.create(getActivity(), Settings.System.DEFAULT_NOTIFICATION_URI);
                     mp.start();

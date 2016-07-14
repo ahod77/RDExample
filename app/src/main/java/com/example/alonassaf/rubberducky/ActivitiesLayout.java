@@ -53,12 +53,16 @@ implements SlideButtonListener {
         //Sets text to activity's action name
         try {
             Class c = Class.forName(RubberDuckyDB2.Entities.get(activity.getAction_id()).getFQCN());
-            BaseActivity ba = (BaseActivity) c.newInstance();
+            BaseAction ba = (BaseAction) c.newInstance();
 
             if (!ba.isActionable(context, activity)) {
                 sb.setVisibility(View.GONE);
             }
-            actTextView.setText(ba.getDescription(context, activity));
+            if (ba.isTextView(context, activity))
+                actTextView.setText(ba.getDescription(context, activity));
+            else {
+                View view = ba.getView(context, activity);
+            }
 
             if (activity.getStatus() == 1) {
                 final AnimationDrawable drawable = new AnimationDrawable();
@@ -98,7 +102,7 @@ implements SlideButtonListener {
     public void handleSlide() {
         try {
             Class c = Class.forName(RubberDuckyDB2.Entities.get(activity.getAction_id()).getFQCN());
-            BaseActivity ba = (BaseActivity) c.newInstance();
+            BaseAction ba = (BaseAction) c.newInstance();
             ba.act(context, activity);
         }
         catch (Exception e) {

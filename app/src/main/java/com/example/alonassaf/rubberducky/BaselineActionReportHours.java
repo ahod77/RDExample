@@ -8,7 +8,7 @@ import org.json.JSONObject;
 /**
  * Created by assaf on 6/13/2016.
  */
-public class BaselineActivityReportHours extends BaseActivity {
+public class BaselineActionReportHours extends BaseAction {
 
     public static final String HOURS_TOTAL = "hoursTotal";
     public static final String HOURS_NEW = "hoursNew";
@@ -31,7 +31,7 @@ public class BaselineActivityReportHours extends BaseActivity {
 
     @Override
     public Boolean act(Context context, Activity a){
-        Intent intent = new Intent(context, ReportHoursDialog.class);
+        Intent intent = new Intent(context, BaselineActionReportHoursDialog.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); //Necessary to start an activity from outside an activity
 
         intent.putExtra("rowId", a.getRowId()); //Try using parcelization to pass Activity

@@ -5,10 +5,18 @@ import android.os.Bundle;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.HorizontalScrollView;
+import android.widget.TabHost;
 import android.widget.Toast;
+
+import com.google.tabmanager.TabManager;
+
 import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity {
@@ -37,11 +45,22 @@ public class MainActivity extends AppCompatActivity {
         }
 
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.paged_tabs);
+//        setContentView(R.layout.paged_tabs);
+        View view = getLayoutInflater().inflate(R.layout.paged_tabs, null);
+        setContentView(view);
+
+        //Sets up action bar
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
         containersAdapter = new ContainerCollectionPagerAdapter(getSupportFragmentManager());
         viewPager = (ViewPager) findViewById(R.id.pager);
         viewPager.setAdapter(containersAdapter);
+
+//        SlidingTabLayout slidingTabLayout = (SlidingTabLayout) view.findViewById(R.id.sliding_tabs);
+//        slidingTabLayout.setDistributeEvenly(true);
+//        slidingTabLayout.setViewPager(viewPager);
+
         viewPager.setCurrentItem(containersAdapter.getCount() + 1);
 
         viewPager.addOnPageChangeListener(
@@ -52,7 +71,6 @@ public class MainActivity extends AppCompatActivity {
                         updateBadges();
                     }
                 });
-
 
         /*
         final ActionBar actionBar = getActionBar();
@@ -84,16 +102,6 @@ public class MainActivity extends AppCompatActivity {
                             .setText(RubberDuckyDB2.Entities.get(pp).getName())
                             .setTabListener(tabListener));
         }
-
-        viewPager.setOnPageChangeListener(
-                new ViewPager.SimpleOnPageChangeListener() {
-                    @Override
-                    public void onPageSelected(int position) {
-                        // When swiping between pages, select the
-                        // corresponding tab.
-                        getActionBar().setSelectedNavigationItem(position);
-                    }
-                });
         */
 
 
@@ -159,8 +167,8 @@ public class MainActivity extends AppCompatActivity {
     public void updateBadges() {
         long containerId = containersAdapter.getContainerIdForItem(viewPager.getCurrentItem());
         JSONObject badges = RubberDuckyDB2.Entities.get(containerId).getBadges();
-        double b1 = badges.optDouble(BaselineActivityReportHours.HOURS_TOTAL, 0.0);
-        double b2 = badges.optDouble(BaselineActivityReportHours.HOURS_NEW, 0.0);
+        double b1 = badges.optDouble(BaselineActionReportHours.HOURS_TOTAL, 0.0);
+        double b2 = badges.optDouble(BaselineActionReportHours.HOURS_NEW, 0.0);
 
         if (badgeCount1 != null) badgeCount1.setText(String.valueOf(b1));
         if (badgeCount2 != null) badgeCount2.setText(String.valueOf(b2));
