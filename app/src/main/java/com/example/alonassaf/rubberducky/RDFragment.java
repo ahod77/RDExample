@@ -5,7 +5,6 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,24 +13,20 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
-import android.widget.TabHost;
 import android.widget.TextView;
-import android.widget.Toast;
-
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by assaf on 6/6/2016.
  */
 public class RDFragment extends Fragment
 implements TextView.OnEditorActionListener, View.OnClickListener {
+    public static final String ARG_ID = "paneID";
+
     private ListView activityListView;
     private EditText inputText;
-    private ImageButton sendButton;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState){
@@ -40,7 +35,7 @@ implements TextView.OnEditorActionListener, View.OnClickListener {
         //Get widget references
         activityListView = (ListView) view.findViewById(R.id.activityListView);
         inputText = (EditText) view.findViewById(R.id.inputText);
-        sendButton = (ImageButton) view.findViewById(R.id.sendButton);
+        ImageButton sendButton = (ImageButton) view.findViewById(R.id.sendButton);
 
         //TabHost tabhost = (TabHost) container.getParent().getParent();
 
@@ -56,7 +51,7 @@ implements TextView.OnEditorActionListener, View.OnClickListener {
     public void refresh() {
         Context context = getActivity().getApplicationContext();
         Bundle bundle = this.getArguments();
-        long containerId = bundle.getLong("paneID");
+        long containerId = bundle.getLong(ARG_ID);
 
         ArrayList<Activity> activities = (ArrayList)RubberDuckyDB2.Activities.getAllByContainer(containerId);
 
@@ -87,7 +82,7 @@ implements TextView.OnEditorActionListener, View.OnClickListener {
                 String message = inputText.getText().toString();
                 inputText.setText(null);
 
-                if (message == null || message.equals(""))
+                if (message.equals(""))
                     break;
 
                 JSONObject params = new JSONObject();
